@@ -1,0 +1,13 @@
+# ----------------------------------------------------------------------------
+# Author: Daniel S.
+# Date: 11/10/2026
+# File: .gitignore
+# Version: V1.0
+# Description: Files Git should never track (venv, Python cache, secrets).
+# ----------------------------------------------------------------------------
+.venv/
+venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+.env
