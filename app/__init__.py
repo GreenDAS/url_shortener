@@ -6,3 +6,4 @@ from app import db
 db.init_app(app)  # MySQL Connection + "flask init-db" Command
 
 from app import routes
+from app import redirect  # noqa: E402  /<code> Short Links (URL-11)
