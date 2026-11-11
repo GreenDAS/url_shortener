@@ -22,4 +22,6 @@ app.config.update(load_config())  # MySQL Settings + Secret Key
 
 from app import db  # noqa: E402
 db.init_app(app)  # MySQL Connection + "flask init-db" Command
+
 from app import routes  # noqa: E402  Imported Last So Routes Can Use "app"
+from app import redirect  # noqa: E402  /<code> Short Links (URL-11), Kept Last
