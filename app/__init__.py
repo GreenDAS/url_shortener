@@ -1,10 +1,27 @@
+# ----------------------------------------------------------------------------
+# Author: Daniel S.
+# Date: 11/10/2026
+# File: app/__init__.py
+# Version: V1.2
+# Description: Creates the Flask app object, loads its config from .env and
+#              hooks up the database and every route module.
+# ----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
+# Imports
+# ----------------------------------------------------------------------------
 from flask import Flask
 
-app = Flask(__name__)
-app.config["SECRET_KEY"] = app.config.get("SECRET_KEY") or "dev-only-not-secret"  # Sessions Need A Key, app/config.py Sets The Real One
+from app.config import load_config
 
-from app import db
+# ----------------------------------------------------------------------------
+# App Setup
+# ----------------------------------------------------------------------------
+app = Flask(__name__)
+app.config.update(load_config())  # MySQL Settings + Secret Key
+
+from app import db  # noqa: E402
 db.init_app(app)  # MySQL Connection + "flask init-db" Command
 
-from app import routes
+from app import routes  # noqa: E402  Imported Last So Routes Can Use "app"
 from app import accounts  # noqa: E402  Switch User (URL-12)
