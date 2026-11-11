@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS urls (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     user_id    INT           NOT NULL,                         -- Owner, Points At users.id
-    code       VARCHAR(32)   NOT NULL UNIQUE,                  -- Short Code, No Duplicates
+    code       VARCHAR(32)   COLLATE utf8mb4_bin NOT NULL UNIQUE, -- Short Code, Case Sensitive (aB12 != AB12)
     long_url   VARCHAR(2048) NOT NULL,                         -- Where The Redirect Goes
     clicks     INT           NOT NULL DEFAULT 0,               -- Times The Short Link Was Used
     created_at DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
