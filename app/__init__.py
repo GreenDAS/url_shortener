@@ -1,7 +1,7 @@
 from flask import Flask
 
 app = Flask(__name__)
-app.config.setdefault("SECRET_KEY", "dev-only-not-secret")  # Sessions Need A Key, app/config.py Sets The Real One
+app.config["SECRET_KEY"] = app.config.get("SECRET_KEY") or "dev-only-not-secret"  # Sessions Need A Key, app/config.py Sets The Real One
 
 from app import db
 db.init_app(app)  # MySQL Connection + "flask init-db" Command
