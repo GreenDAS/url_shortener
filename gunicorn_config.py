@@ -1,17 +1,25 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/10/2026
+# Date: 11/11/2026
 # File: gunicorn_config.py
-# Version: V1.0
+# Version: V1.1
 # Description: Gunicorn settings for serving the Flask app. Loaded with
 #              "gunicorn -c ./gunicorn_config.py" (spec WSGI-1..5, DOC-3, DOC-6).
+#
+#              Gunicorn runs this file as plain Python and reads any
+#              top level variable whose name matches one of its settings
+#              (bind, workers, wsgi_app, accesslog, errorlog). Nothing here
+#              is a function, so the names themselves are the interface.
+#              The Dockerfile's CMD points Gunicorn at this file, and
+#              compose.dev.yaml adds --reload and --workers 1 on top of it.
+#              Spec sheet: docs/specs/app-startup.md
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
 # Imports
 # ----------------------------------------------------------------------------
-import multiprocessing
-import os
+import multiprocessing  # cpu_count() For The Worker Formula
+import os  # Lets The Environment Override The Port And Worker Count
 
 # ----------------------------------------------------------------------------
 # Settings
