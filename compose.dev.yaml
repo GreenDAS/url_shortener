@@ -1,0 +1,15 @@
+# ----------------------------------------------------------------------------
+# Author: Daniel S.
+# Date: 11/10/2026
+# File: compose.dev.yaml
+# Version: V1.0
+# Description: Development add-on, NOT for the demo. Mounts the code folder
+#              into the container and has Gunicorn reload on every save.
+#              Start with: docker compose -f compose.yaml -f compose.dev.yaml up --build
+# ----------------------------------------------------------------------------
+services:
+  web:
+    command: ["gunicorn", "-c", "./gunicorn_config.py", "--reload", "--workers", "1"]
+    volumes:
+      - .:/app  # Live Reload: Edits On Windows Show Up In The Container
+      - /app/.venv  # Keeps The Windows venv Out Of The Container
