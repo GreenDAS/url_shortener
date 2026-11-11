@@ -1,6 +1,15 @@
+# ----------------------------------------------------------------------------
+# Author: Daniel S.
+# Date: 11/10/2026
+# File: .dockerignore
+# Version: V1.1
+# Description: Files left out of the Docker image. .env is NOT listed here on
+#              purpose, the image carries it so a rebuild picks up changes (DB-5).
+# ----------------------------------------------------------------------------
 .venv/
+venv/
 __pycache__/
 **/__pycache__/
 *.pyc
 .git/
-.env
+tests/
