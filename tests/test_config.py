@@ -1,9 +1,15 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/10/2026
+# Date: 11/11/2026
 # File: tests/test_config.py
-# Version: V1.0
+# Version: V1.1
 # Description: Unit tests for app/config.py (.env loading, spec DB-2).
+#
+#              Uses mock.patch.dict(os.environ) and temporary .env files so each
+#              test controls exactly what load_config() sees, and checks that
+#              real environment variables beat the .env file.
+#              Run just this file: python -m unittest tests.test_config -v
+#              Spec sheet: docs/specs/app-startup.md
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------

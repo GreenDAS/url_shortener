@@ -1,10 +1,16 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/10/2026
+# Date: 11/11/2026
 # File: tests/test_users.py
-# Version: V1.0
+# Version: V1.1
 # Description: Unit tests for app/users.py. get_db() is replaced with a mock
 #              so no MySQL server is needed.
+#
+#              get_db() is mocked with a fake connection and cursor, so tests
+#              check the SQL sent, that only a hash is stored, duplicate
+#              username handling, and that verify_user() hides the hash.
+#              Run just this file: python -m unittest tests.test_users -v
+#              Spec sheet: docs/specs/users.md
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------

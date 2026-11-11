@@ -1,9 +1,14 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/10/2026
+# Date: 11/11/2026
 # File: tests/test_routes.py
-# Version: V1.1
+# Version: V1.2
 # Description: Unit tests for app/routes.py using Flask's test client.
+#
+#              Uses Flask's test client against the placeholder home page and
+#              checks unknown pages 404 (with the short link lookup mocked).
+#              Run just this file: python -m unittest tests.test_routes -v
+#              Spec sheet: docs/specs/home-page.md
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------

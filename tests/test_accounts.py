@@ -1,11 +1,18 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/10/2026
+# Date: 11/11/2026
 # File: tests/test_accounts.py
-# Version: V1.0
+# Version: V1.1
 # Description: Unit tests for app/accounts.py (URL-12 user swapping). Uses a
 #              test request so there is a real session, and mocks the users
 #              table so no MySQL server is needed.
+#
+#              Runs each test inside app.test_request_context() so the session
+#              works without a browser. get_user_by_id is mocked so no MySQL
+#              is needed. Covers add/switch/remove, the 5 account cap, the
+#              menu list and the POST /switch/<id> route (403 + redirect).
+#              Run just this file: python -m unittest tests.test_accounts -v
+#              Spec sheet: docs/specs/user-swap.md
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------

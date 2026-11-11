@@ -1,9 +1,15 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/10/2026
+# Date: 11/11/2026
 # File: tests/test_gunicorn_config.py
-# Version: V1.0
+# Version: V1.1
 # Description: Unit tests for gunicorn_config.py (spec WSGI-1..4, DOC-3, DOC-6).
+#
+#              Loads gunicorn_config.py as a module with different APP_PORT and
+#              GUNICORN_WORKERS values and checks bind, workers, wsgi_app and
+#              the log settings the course spec asks for.
+#              Run just this file: python -m unittest tests.test_gunicorn_config -v
+#              Spec sheet: docs/specs/app-startup.md
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
