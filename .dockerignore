@@ -1,15 +1,22 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/10/2026
+# Date: 11/11/2026
 # File: .dockerignore
-# Version: V1.1
+# Version: V1.2
 # Description: Files left out of the Docker image. .env is NOT listed here on
 #              purpose, the image carries it so a rebuild picks up changes (DB-5).
+#              Comments must be on their own line, a "#" after a pattern
+#              would become part of the pattern.
 # ----------------------------------------------------------------------------
+# Python Virtual Environments
 .venv/
 venv/
+# Python's Compiled Cache Folders
 __pycache__/
 **/__pycache__/
+# Compiled Python Files
 *.pyc
+# Git History Isn't Needed To Run The App
 .git/
+# Unit Tests Run On The Laptop, Not In The Image
 tests/

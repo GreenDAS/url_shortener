@@ -1,4 +1,14 @@
-Flask==3.1.3
-PyMySQL[rsa]==1.1.2
-gunicorn==27.0.0
-python-dotenv==1.2.4
+# ----------------------------------------------------------------------------
+# Author: Daniel S.
+# Date: 11/11/2026
+# File: requirements.txt
+# Version: V1.1
+# Description: Python packages the app needs, pinned to exact versions so
+#              the laptop, the Docker image and the tests all match.
+#              Install with: pip install -r requirements.txt
+#              (the Dockerfile runs the same command when building).
+# ----------------------------------------------------------------------------
+Flask==3.1.3  # Web Framework (Routes, Sessions, Test Client), Brings werkzeug And click
+PyMySQL[rsa]==1.1.2  # MySQL Driver, [rsa] Adds What MySQL 8's Default Login Method Needs
+gunicorn==27.0.0  # Production WSGI Server Used In The Container (WSGI-1)
+python-dotenv==1.2.4  # Reads The .env File In app/config.py

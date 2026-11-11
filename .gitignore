@@ -1,13 +1,19 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/10/2026
+# Date: 11/11/2026
 # File: .gitignore
-# Version: V1.0
+# Version: V1.1
 # Description: Files Git should never track (venv, Python cache, secrets).
+#              Comments must be on their own line, a "#" after a pattern
+#              would become part of the pattern.
 # ----------------------------------------------------------------------------
+# Python Virtual Environments
 .venv/
 venv/
+# Python's Compiled Cache Folders
 __pycache__/
 **/__pycache__/
+# Compiled Python Files
 *.pyc
+# Real Passwords, Only .env.example Is Committed
 .env
