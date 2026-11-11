@@ -24,4 +24,5 @@ from app import db  # noqa: E402
 db.init_app(app)  # MySQL Connection + "flask init-db" Command
 
 from app import routes  # noqa: E402  Imported Last So Routes Can Use "app"
+from app import accounts  # noqa: E402  Switch User (URL-12)
 from app import redirect  # noqa: E402  /<code> Short Links (URL-11), Kept Last
