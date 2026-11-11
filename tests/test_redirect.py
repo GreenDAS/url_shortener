@@ -1,10 +1,16 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/10/2026
+# Date: 11/11/2026
 # File: tests/test_redirect.py
-# Version: V1.0
+# Version: V1.1
 # Description: Unit tests for app/redirect.py using Flask's test client. The
 #              database lookups are mocked so no MySQL server is needed.
+#
+#              Uses Flask's test client so real HTTP requests go through the
+#              routing. get_url_by_code and record_click are mocked in
+#              app.redirect (where they are used, not where they are defined).
+#              Run just this file: python -m unittest tests.test_redirect -v
+#              Spec sheet: docs/specs/redirect.md
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------

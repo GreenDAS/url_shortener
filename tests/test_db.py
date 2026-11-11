@@ -1,10 +1,16 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/10/2026
+# Date: 11/11/2026
 # File: tests/test_db.py
-# Version: V1.0
+# Version: V1.1
 # Description: Unit tests for app/db.py. MySQL is faked with unittest.mock so
 #              these run without a database server.
+#
+#              pymysql.connect is mocked, so tests check the settings passed to
+#              it, that one connection is reused per request and closed at
+#              teardown, how schema.sql is split, and the init-db command.
+#              Run just this file: python -m unittest tests.test_db -v
+#              Spec sheet: docs/specs/database.md
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------

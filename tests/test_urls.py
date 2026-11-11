@@ -1,10 +1,16 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/10/2026
+# Date: 11/11/2026
 # File: tests/test_urls.py
-# Version: V1.0
+# Version: V1.1
 # Description: Unit tests for app/urls.py. get_db() is replaced with a mock
 #              so no MySQL server is needed.
+#
+#              get_db() is mocked with a fake connection and cursor, so tests
+#              check the SQL and arguments sent, the commit/rollback calls,
+#              the alias and URL rules, and the random code retry loop.
+#              Run just this file: python -m unittest tests.test_urls -v
+#              Spec sheet: docs/specs/urls.md
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
