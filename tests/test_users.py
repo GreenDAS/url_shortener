@@ -2,13 +2,13 @@
 # Author: Daniel S.
 # Date: 11/11/2026
 # File: tests/test_users.py
-# Version: V1.1
+# Version: V1.2
 # Description: Unit tests for app/users.py. get_db() is replaced with a mock
 #              so no MySQL server is needed.
 #
 #              get_db() is mocked with a fake connection and cursor, so tests
-#              check the SQL sent, that only a hash is stored, duplicate
-#              username handling, and that verify_user() hides the hash.
+#              check the SQL sent, that no password is stored (URL-23),
+#              duplicate username handling, and that list_users() sorts.
 #              Run just this file: python -m unittest tests.test_users -v
 #              Spec sheet: docs/specs/users.md
 # ----------------------------------------------------------------------------
@@ -20,7 +20,6 @@ import unittest
 from unittest import mock
 
 import pymysql
-from werkzeug.security import check_password_hash, generate_password_hash
 
 from url_shortener import app
 from app import users
@@ -44,7 +43,7 @@ class UsersTestCase(unittest.TestCase):
 
 
 class TestValidation(unittest.TestCase):
-    """Checks the username and password rules."""
+    """Checks the username rules."""
 
     def test_good_username_passes(self):
         """Letters, numbers, "_" and "-" are allowed."""
@@ -65,45 +64,35 @@ class TestValidation(unittest.TestCase):
         with self.assertRaises(users.UserError):
             users.validate_username(None)
 
-    def test_short_password_fails(self):
-        """Passwords under MIN_PASSWORD_LENGTH are rejected."""
-        with self.assertRaises(users.UserError):
-            users.validate_password("short")
-
-    def test_long_enough_password_passes(self):
-        """A password of exactly the minimum length is allowed."""
-        users.validate_password("x" * users.MIN_PASSWORD_LENGTH)
-
 
 class TestCreateUser(UsersTestCase):
-    """Checks create_user() saves a hashed password and handles duplicates."""
+    """Checks create_user() saves just the username and handles duplicates."""
 
     def test_returns_new_id_and_commits(self):
         """The new row's id comes back and the insert is committed."""
         self.cursor.lastrowid = 7
-        self.assertEqual(users.create_user("dan", "password123"), 7)
+        self.assertEqual(users.create_user("dan"), 7)
         self.db.commit.assert_called_once()
 
-    def test_password_is_hashed_not_plain(self):
-        """The value sent to MySQL is a hash that matches, not the password itself."""
-        users.create_user("dan", "password123")
+    def test_insert_sends_only_the_username(self):
+        """The INSERT names only the username column, no password of any kind."""
+        users.create_user("dan")
         sql, params = self.cursor.execute.call_args.args
-        self.assertIn("INSERT INTO users", sql)
-        self.assertEqual(params[0], "dan")
-        self.assertNotEqual(params[1], "password123")
-        self.assertTrue(check_password_hash(params[1], "password123"))
+        self.assertIn("INSERT INTO users (username)", sql)
+        self.assertNotIn("password", sql)
+        self.assertEqual(params, ("dan",))
 
     def test_duplicate_username_raises_user_error(self):
         """A UNIQUE clash becomes UserError and the insert is rolled back."""
         self.cursor.execute.side_effect = pymysql.err.IntegrityError(1062, "Duplicate entry")
         with self.assertRaises(users.UserError):
-            users.create_user("dan", "password123")
+            users.create_user("dan")
         self.db.rollback.assert_called_once()
 
     def test_invalid_input_never_touches_db(self):
         """A bad username is caught before any SQL runs."""
         with self.assertRaises(users.UserError):
-            users.create_user("x", "password123")
+            users.create_user("x")
         self.cursor.execute.assert_not_called()
 
 
@@ -123,40 +112,43 @@ class TestLookups(UsersTestCase):
         self.cursor.fetchone.return_value = None
         self.assertIsNone(users.get_user_by_id(99))
 
-    def test_get_by_id_never_selects_hash(self):
-        """get_user_by_id() does not pull password_hash."""
+    def test_no_lookup_selects_a_password(self):
+        """Neither lookup asks MySQL for a password column (URL-23)."""
         users.get_user_by_id(1)
-        sql = self.cursor.execute.call_args.args[0]
-        self.assertNotIn("password_hash", sql)
+        self.assertNotIn("password", self.cursor.execute.call_args.args[0])
+        users.get_user_by_username("dan")
+        self.assertNotIn("password", self.cursor.execute.call_args.args[0])
 
 
-class TestVerifyUser(UsersTestCase):
-    """Checks verify_user() for logging in."""
+class TestListUsers(UsersTestCase):
+    """Checks list_users() for the user picker."""
 
-    def setUp(self):
-        """Fakes a stored user whose password is "password123"."""
-        super().setUp()
-        self.cursor.fetchone.return_value = {
-            "id": 1,
-            "username": "dan",
-            "password_hash": generate_password_hash("password123"),
-            "created_at": None,
-        }
+    def test_returns_rows_as_a_list(self):
+        """fetchall()'s rows come back as a plain list, in the order MySQL gave."""
+        rows = ({"id": 2, "username": "amy"}, {"id": 1, "username": "dan"})
+        self.cursor.fetchall.return_value = rows
+        self.assertEqual(users.list_users(), list(rows))
 
-    def test_right_password_returns_user_without_hash(self):
-        """Correct login gives the user back with password_hash removed."""
-        user = users.verify_user("dan", "password123")
-        self.assertEqual(user["id"], 1)
-        self.assertNotIn("password_hash", user)
+    def test_sorted_by_username_in_sql(self):
+        """The SELECT sorts by username so the picker order never changes."""
+        self.cursor.fetchall.return_value = ()
+        users.list_users()
+        self.assertIn("ORDER BY username", self.cursor.execute.call_args.args[0])
 
-    def test_wrong_password_returns_none(self):
-        """Wrong password gives None."""
-        self.assertIsNone(users.verify_user("dan", "wrong-password"))
+    def test_no_users_gives_empty_list(self):
+        """An empty table gives [] instead of None or a tuple."""
+        self.cursor.fetchall.return_value = ()
+        self.assertEqual(users.list_users(), [])
 
-    def test_unknown_user_returns_none(self):
-        """A username that doesn't exist gives None too."""
-        self.cursor.fetchone.return_value = None
-        self.assertIsNone(users.verify_user("nobody", "password123"))
+
+class TestSchema(unittest.TestCase):
+    """Checks app/schema.sql no longer has a password column."""
+
+    def test_schema_has_no_password_column(self):
+        """The users table definition has no password_hash column (URL-23)."""
+        from pathlib import Path
+        schema = Path(users.__file__).with_name("schema.sql").read_text(encoding="utf-8")
+        self.assertNotIn("password_hash VARCHAR", schema)
 
 
 if __name__ == "__main__":
