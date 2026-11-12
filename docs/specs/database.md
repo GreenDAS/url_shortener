@@ -40,7 +40,6 @@ tables from `app/schema.sql`.
 |---|---|---|
 | `id` | INT | AUTO_INCREMENT, PRIMARY KEY |
 | `username` | VARCHAR(50) | NOT NULL, UNIQUE |
-| `password_hash` | VARCHAR(255) | NOT NULL, werkzeug salted hash |
 | `created_at` | DATETIME | NOT NULL, defaults to now |
 
 **urls**
@@ -60,7 +59,6 @@ erDiagram
     users {
         INT id PK
         VARCHAR username UK
-        VARCHAR password_hash
         DATETIME created_at
     }
     urls {
@@ -152,3 +150,8 @@ flowchart TD
   value in `schema.sql` would break it. `schema.sql` never has one.
 * `init-db` only creates missing tables. It never changes an existing
   table, so a column change needs a manual `ALTER TABLE` or a fresh volume.
+* **Table changes need a rebuild.** `CREATE TABLE IF NOT EXISTS` skips a
+  table that already exists, so it never changes columns. After a schema
+  change (like URL-23 dropping `password_hash`), drop the old tables first
+  with `DROP TABLE IF EXISTS urls; DROP TABLE IF EXISTS users;` in MySQL,
+  then run `flask --app url_shortener init-db` again. This deletes the rows.
