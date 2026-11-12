@@ -2,7 +2,7 @@
 # Author: Daniel S.
 # Date: 11/11/2026
 # File: tests/test_urls.py
-# Version: V1.1
+# Version: V1.2
 # Description: Unit tests for app/urls.py. get_db() is replaced with a mock
 #              so no MySQL server is needed.
 #
@@ -164,7 +164,7 @@ class TestCreateUrl(UrlsTestCase):
 
 
 class TestReadAndDelete(UrlsTestCase):
-    """Checks lookups, listing, deleting and click counting."""
+    """Checks lookups, listing and deleting."""
 
     def test_get_by_code_uses_placeholder(self):
         """The code is passed as a parameter, not pasted into the SQL."""
@@ -194,17 +194,12 @@ class TestReadAndDelete(UrlsTestCase):
         self.cursor.rowcount = 0
         self.assertFalse(urls.delete_url(2, "abc123"))
 
-    def test_record_click(self):
-        """A visit adds 1 in SQL and reports the link was found."""
-        self.cursor.rowcount = 1
-        self.assertTrue(urls.record_click("abc123"))
-        self.assertIn("clicks = clicks + 1", self.cursor.execute.call_args.args[0])
-        self.db.commit.assert_called_once()
-
-    def test_record_click_missing_code(self):
-        """An unknown code reports False."""
-        self.cursor.rowcount = 0
-        self.assertFalse(urls.record_click("nope"))
+    def test_no_clicks_column_selected(self):
+        """The shared column list and schema.sql have no clicks column (URL-25)."""
+        from pathlib import Path
+        self.assertNotIn("clicks", urls.URL_COLUMNS)
+        schema = Path(urls.__file__).with_name("schema.sql").read_text(encoding="utf-8")
+        self.assertNotIn("clicks", schema)
 
 
 if __name__ == "__main__":
