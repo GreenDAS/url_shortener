@@ -4,15 +4,15 @@
 |---|---|
 | **Author** | Daniel S. |
 | **Date** | 11/11/2026 |
-| **Version** | V1.0 |
-| **Jira** | URL-11 (redirect) |
+| **Version** | V1.1 |
+| **Jira** | URL-11 (redirect), URL-25 (click counting removed) |
 | **Files** | `app/redirect.py` (uses `app/urls.py`) |
 | **Tests** | `tests/test_redirect.py`, `tests/test_routes.py` (404 case) |
 
 ## 1. Purpose
 
 When someone visits `url.short.com/<code>`, send their browser to the saved
-long URL and add one to that link's click count.
+long URL. Visits are not counted (click counts were removed in URL-25).
 
 ## 2. Inputs
 
@@ -24,8 +24,8 @@ long URL and add one to that link's click count.
 
 | Case | HTTP response |
 |---|---|
-| Code exists | `302 Found`, `Location: <long_url>`, click count +1 |
-| Code unknown | `404 Not Found`, nothing counted |
+| Code exists | `302 Found`, `Location: <long_url>` |
+| Code unknown | `404 Not Found` |
 | Path is a fixed page (`/`, `/index`, `/switch/<id>`) | that page, the lookup never runs |
 
 ## 4. Behavior
@@ -38,11 +38,12 @@ long URL and add one to that link's click count.
    last in `app/__init__.py`.
 3. `get_url_by_code(code)` looks up the row.
 4. Not found: `abort(404)`.
-5. Found: `record_click(code)` then `redirect(long_url, code=302)`.
+5. Found: `redirect(long_url, code=302)`. One SELECT is the only query.
 
 **Why 302 and not 301:** a 301 is permanent, so browsers cache it and skip
-the server next time, and those visits would never be counted. 302 makes
-every visit come back through the app.
+the server next time. If the owner then deleted the link, those browsers
+would keep redirecting anyway. 302 makes every visit come back through the
+app, so a deleted link stops working right away.
 
 ## 5. Function Reference
 
@@ -52,7 +53,7 @@ every visit come back through the app.
 
 | Constant | Value | Meaning |
 |---|---|---|
-| `REDIRECT_STATUS` | `302` | Temporary redirect so clicks keep counting |
+| `REDIRECT_STATUS` | `302` | Temporary redirect so browsers don't cache it |
 
 ## 6. Flow Chart
 
@@ -66,8 +67,7 @@ flowchart TD
     F --> G["get_url_by_code(code)"]
     G --> H{Row found?}
     H -->|No| I(["abort(404): Not Found page"])
-    H -->|Yes| J["record_click(code): clicks + 1"]
-    J --> K(["302 Found, Location: long_url"])
+    H -->|Yes| K(["302 Found, Location: long_url"])
     K --> L([Browser loads the long URL])
 ```
 
@@ -85,8 +85,6 @@ sequenceDiagram
     M-->>U: row (or nothing)
     alt found
         U-->>F: link dict
-        F->>U: record_click("aB12cD")
-        U->>M: UPDATE urls SET clicks = clicks + 1
         F-->>B: 302 Location: long_url
     else not found
         U-->>F: None
@@ -97,15 +95,14 @@ sequenceDiagram
 ## 8. Tests
 
 * `tests/test_redirect.py` uses Flask's test client with `get_url_by_code`
-  and `record_click` mocked in `app.redirect`. It checks the 302 and its
-  Location, that one click is recorded, that an unknown code is a 404 with
-  no click, that `/index` never reaches the lookup, and that the code is
-  passed through with its case unchanged.
+  mocked in `app.redirect`. It checks the 302 and its Location, that an
+  unknown code is a 404, that `/index` never reaches the lookup, that the
+  code is passed through with its case unchanged, and that no click
+  counting code is left.
 * `tests/test_routes.py::test_unknown_page_is_404` checks a made up path.
 * Run: `python -m unittest tests.test_redirect -v`
 
 ## 9. Known Limits and Notes
 
-* The click is counted before the redirect, so a visitor who closes the
-  tab right away still counts.
+* Visits are not counted or logged anywhere.
 * There is no custom 404 page yet, Flask's default is shown.

@@ -2,7 +2,7 @@
 # Author: Daniel S.
 # Date: 11/11/2026
 # File: app/urls.py
-# Version: V1.1
+# Version: V1.2
 # Description: Functions for the urls table (URL-10). Makes short codes,
 #              saves links, looks them up for the redirect (URL-11) and lists
 #              or deletes a user's links for the home page (URL-15).
@@ -11,7 +11,6 @@
 #              Who uses what:
 #                create_url()          -> create page / API (URL-14)
 #                get_url_by_code()     -> app/redirect.py (URL-11)
-#                record_click()        -> app/redirect.py (URL-11)
 #                list_urls_for_user()  -> home page (URL-15)
 #                delete_url()          -> home page delete button (URL-15)
 #              A short code is either random (generate_code) or a custom
@@ -43,7 +42,7 @@ ALIAS_PATTERN = re.compile(r"^[A-Za-z0-9_-]{3,32}$")  # Custom Alias: 3-32 Lette
 # Codes That Would Clash With The App's Own Pages, Since Short Links Live At /<code>
 RESERVED_CODES = {"login", "logout", "home", "api", "static", "admin", "favicon.ico", "index"}
 
-URL_COLUMNS = "id, user_id, code, long_url, clicks, created_at"  # Same Columns For Every SELECT
+URL_COLUMNS = "id, user_id, code, long_url, created_at"  # Same Columns For Every SELECT
 
 # ----------------------------------------------------------------------------
 # Classes
@@ -140,7 +139,7 @@ def create_url(user_id, long_url, alias=None):
       3. Without an alias: make a random code and try to save it. If that
          random code happens to be taken, make a new one and try again, up
          to MAX_CODE_TRIES times, then give up with UrlError.
-      4. Read the saved row back so the caller gets clicks and created_at too.
+      4. Read the saved row back so the caller gets id and created_at too.
     MySQL's UNIQUE rule on urls.code is what catches clashes, so two people
     asking for the same alias at once can't both get it.
 
@@ -175,7 +174,7 @@ def get_url_by_code(code):
     Looks up a link by its short code (used by the redirect). The match is
     case sensitive because of the utf8mb4_bin collation on the column.
     Arg1 = code, the part after the domain
-    Returns: dict with id, user_id, code, long_url, clicks, created_at. If not found: None
+    Returns: dict with id, user_id, code, long_url, created_at. If not found: None
     """
     with get_db().cursor() as cursor:
         cursor.execute(f"SELECT {URL_COLUMNS} FROM urls WHERE code = %s", (code,))  # f-string Only Adds Our Own Column List
@@ -211,16 +210,3 @@ def delete_url(user_id, code):
     db.commit()
     return deleted
 
-
-def record_click(code):
-    """
-    Adds 1 to a link's click counter when someone uses it.
-    Arg1 = code, the short code that was visited
-    Returns: True if the link exists, Else: False
-    """
-    db = get_db()
-    with db.cursor() as cursor:
-        cursor.execute("UPDATE urls SET clicks = clicks + 1 WHERE code = %s", (code,))  # Done In SQL So Two Clicks Can't Overwrite Each Other
-        found = cursor.rowcount == 1  # 0 Means No Row Had That Code
-    db.commit()
-    return found
