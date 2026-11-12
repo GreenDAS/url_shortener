@@ -2,7 +2,7 @@
 # Author: Daniel S.
 # Date: 11/11/2026
 # File: tests/test_db.py
-# Version: V1.1
+# Version: V1.2
 # Description: Unit tests for app/db.py. MySQL is faked with unittest.mock so
 #              these run without a database server.
 #
@@ -68,14 +68,31 @@ class TestConnection(unittest.TestCase):
         self.assertEqual(settings["port"], 3399)  # Converted To An int
         self.assertEqual(settings["user"], "tester")
 
-    def test_settings_fall_back_to_defaults(self):
-        """With nothing set, the laptop defaults are used."""
-        for key in self.saved:
-            app.config.pop(key, None)
-        with mock.patch.dict("os.environ", {}, clear=True), app.app_context():
+    def test_environment_is_not_read_by_db(self):
+        """db.py ignores os.environ, only app.config counts (URL-26)."""
+        app.config.update(MYSQL_HOST="from.config", MYSQL_PORT=3306)
+        with mock.patch.dict("os.environ", {"MYSQL_HOST": "from.env", "MYSQL_PORT": "9999"}), app.app_context():
             settings = db.connection_settings()
-        self.assertEqual(settings["host"], db.DEFAULT_MYSQL_HOST)
-        self.assertEqual(settings["port"], db.DEFAULT_MYSQL_PORT)
+        self.assertEqual(settings["host"], "from.config")
+        self.assertEqual(settings["port"], 3306)
+
+    def test_db_has_no_defaults_of_its_own(self):
+        """The defaults live in app/config.py only, db.py has none left."""
+        for name in ("DEFAULT_MYSQL_HOST", "DEFAULT_MYSQL_PORT", "DEFAULT_MYSQL_DB", "_setting"):
+            self.assertFalse(hasattr(db, name), f"{name} is still in app/db.py")
+
+    def test_missing_setting_raises_key_error(self):
+        """If app.config somehow lacks a MYSQL_* key, it fails loudly instead of guessing."""
+        app.config.pop("MYSQL_HOST", None)
+        with app.app_context(), self.assertRaises(KeyError):
+            db.connection_settings()
+
+    def test_startup_config_has_every_mysql_key(self):
+        """load_config() always fills all five MYSQL_* keys db.py needs."""
+        from app.config import load_config
+        config = load_config()
+        for key in ("MYSQL_HOST", "MYSQL_PORT", "MYSQL_USER", "MYSQL_PASSWORD", "MYSQL_DB"):
+            self.assertIn(key, config)
 
     @mock.patch("app.db.pymysql.connect")
     def test_get_db_reuses_one_connection(self, connect):
