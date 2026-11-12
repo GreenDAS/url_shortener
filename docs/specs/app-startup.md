@@ -128,7 +128,6 @@ flowchart TD
 
 * `.env` is copied into the image on purpose (see `.dockerignore`), so the
   image has to be rebuilt after any `.env` change (DB-5).
-* `app/config.py` defaults `MYSQL_HOST` to `host.docker.internal`, while
-  `app/db.py` has its own fallback of `127.0.0.1`. The db.py one only matters
-  if `app.config` is empty, which doesn't happen in normal startup.
+* `app/config.py` is the only place with MySQL defaults (URL-26).
+  `app/db.py` reads `app.config` and nothing else.
 * `compose.dev.yaml` is for development only (live reload, 1 worker).
