@@ -16,6 +16,9 @@ Gives every request one MySQL connection, closes it when the request ends,
 and adds the `flask --app url_shortener init-db` command that creates the
 tables from `app/schema.sql`.
 
+MySQL itself runs on the host laptop, not in a container (URL-29). The
+setup steps are in the [host MySQL spec sheet](host-mysql.md).
+
 ## 2. Inputs
 
 * `app.config` keys `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`,
@@ -150,7 +153,5 @@ flowchart TD
 
 * The splitter doesn't understand quotes, so `;` or `--` inside a string
   value in `schema.sql` would break it. `schema.sql` never has one.
-* MySQL runs on the host laptop, not in a container (URL-29). Setup steps
-  are in the [host MySQL spec sheet](host-mysql.md).
 * `init-db` only creates missing tables. It never changes an existing
-  table, so a column change needs a manual `ALTER TABLE` or dropping the tables first.
+  table, so a column change needs a manual `ALTER TABLE` or a fresh volume.
