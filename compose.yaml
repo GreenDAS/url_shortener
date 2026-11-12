@@ -2,17 +2,19 @@
 # Author: Daniel S.
 # Date: 11/11/2026
 # File: compose.yaml
-# Version: V1.2
-# Description: Runs the app container (Gunicorn) and the MySQL container.
+# Version: V1.3
+# Description: Runs the app container (Gunicorn). MySQL is NOT in here, it
+#              runs on the host laptop like the course spec asks (DB-1).
 #              Start with: docker compose up --build -d
 #              Settings come from the .env file (copy .env.example first).
 #
-#              Two services:
+#              One service:
 #                web = this repo's Dockerfile, Gunicorn on port 5000
-#                db  = the official MySQL 8.4 image, data kept in a volume
-#              "web" waits for "db" to pass its healthcheck before starting,
-#              so the app never comes up before MySQL can take connections.
-#              The ${...} values are filled in from .env by Docker Compose.
+#              The app reaches the laptop's MySQL (port 3306) through the
+#              name host.docker.internal, which the extra_hosts line below
+#              points at the host (DOC-5, DB-2). MySQL has to be running on
+#              the laptop before the app is used, Compose can't start it.
+#              One time MySQL setup: docs/specs/host-mysql.md
 #              Spec sheet: docs/specs/app-startup.md
 # ----------------------------------------------------------------------------
 services:
@@ -23,29 +25,5 @@ services:
     ports:
       - "5000:5000"  # Publishes The Gunicorn Port On The Host (DOC-4)
     extra_hosts:
-      - "host.docker.internal:host-gateway"  # Lets The Container Reach The Host (DOC-5)
-    depends_on:
-      db:
-        condition: service_healthy
+      - "host.docker.internal:host-gateway"  # Lets The Container Reach The Host's MySQL (DOC-5)
     restart: unless-stopped  # Comes Back After A Crash Or Reboot Unless Stopped By Hand
-
-  db:
-    image: mysql:8.4
-    container_name: url_shortener_db
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DB}
-      MYSQL_USER: ${MYSQL_USER}  # Dedicated App User, Allowed From Any Host (DB-3, DB-4)
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    ports:
-      - "3307:3306"  # 3307 On The Host So It Doesn't Clash With The Local MySQL On 3306
-    volumes:
-      - db_data:/var/lib/mysql  # Named Volume, So Tables Survive "docker compose down"
-    healthcheck:  # "Healthy" Once mysqladmin ping Answers, Checked Every 5s Up To 20 Times
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-volumes:
-  db_data:  # Created By Docker The First Time, Holds The MySQL Data Files

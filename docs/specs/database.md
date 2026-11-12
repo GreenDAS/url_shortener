@@ -150,5 +150,7 @@ flowchart TD
 
 * The splitter doesn't understand quotes, so `;` or `--` inside a string
   value in `schema.sql` would break it. `schema.sql` never has one.
+* MySQL runs on the host laptop, not in a container (URL-29). Setup steps
+  are in the [host MySQL spec sheet](host-mysql.md).
 * `init-db` only creates missing tables. It never changes an existing
-  table, so a column change needs a manual `ALTER TABLE` or a fresh volume.
+  table, so a column change needs a manual `ALTER TABLE` or dropping the tables first.
