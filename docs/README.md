@@ -13,8 +13,8 @@ and one or more Mermaid flow charts. Mermaid renders on GitHub and in VS Code
 |---|---|---|---|
 | App startup, config, Gunicorn, Docker | URL-4 | [app-startup.md](specs/app-startup.md) | `url_shortener.py`, `app/__init__.py`, `app/config.py`, `gunicorn_config.py`, `Dockerfile`, `compose*.yaml` |
 | Database connection and `flask init-db` | URL-9, URL-10 | [database.md](specs/database.md) | `app/db.py`, `app/schema.sql` |
-| Users (accounts, passwords) | URL-9 | [users.md](specs/users.md) | `app/users.py` |
-| URLs (short codes, links, clicks) | URL-10 | [urls.md](specs/urls.md) | `app/urls.py` |
+| Users (usernames, no passwords) | URL-9 | [users.md](specs/users.md) | `app/users.py` |
+| URLs (short codes, links) | URL-10 | [urls.md](specs/urls.md) | `app/urls.py` |
 | Short link redirect | URL-11 | [redirect.md](specs/redirect.md) | `app/redirect.py` |
 | User swapping | URL-12 | [user-swap.md](specs/user-swap.md) | `app/accounts.py` |
 | Home page (placeholder) | URL-15 (later) | [home-page.md](specs/home-page.md) | `app/routes.py` |

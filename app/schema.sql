@@ -2,7 +2,7 @@
 -- Author: Daniel S.
 -- Date: 11/11/2026
 -- File: app/schema.sql
--- Version: V1.2
+-- Version: V1.3
 -- Description: Creates the MySQL tables the app needs. Run it with:
 --              flask --app url_shortener init-db
 --
@@ -17,12 +17,12 @@
 -- ----------------------------------------------------------------------------
 -- Users Table (URL-9)
 -- ----------------------------------------------------------------------------
--- One row per account. Passwords are never stored in plain text, only the
--- hash made by werkzeug's generate_password_hash().
+-- One row per user. A user is only a unique username, there are no
+-- passwords (URL-23). If an older users table with a password_hash column
+-- already exists, drop the tables first (see docs/specs/database.md).
 CREATE TABLE IF NOT EXISTS users (
     id            INT AUTO_INCREMENT PRIMARY KEY,              -- MySQL Picks The Next Number
-    username      VARCHAR(50)  NOT NULL UNIQUE,                -- Login Name, No Duplicates
-    password_hash VARCHAR(255) NOT NULL,                       -- Salted Hash, Not The Password
+    username      VARCHAR(50)  NOT NULL UNIQUE,                -- The User's Name, No Duplicates
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP -- Filled In By MySQL On INSERT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; -- InnoDB Is Needed For FOREIGN KEY, utf8mb4 = Full Unicode
 
