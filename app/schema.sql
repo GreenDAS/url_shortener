@@ -36,7 +36,6 @@ CREATE TABLE IF NOT EXISTS urls (
     user_id    INT           NOT NULL,                         -- Owner, Points At users.id
     code       VARCHAR(32)   COLLATE utf8mb4_bin NOT NULL UNIQUE, -- Short Code, Case Sensitive (aB12 != AB12)
     long_url   VARCHAR(2048) NOT NULL,                         -- Where The Redirect Goes
-    clicks     INT           NOT NULL DEFAULT 0,               -- Times The Short Link Was Used
     created_at DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Newest First Sorting Uses This
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE -- Links Go Away With Their Owner
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; -- InnoDB Is Needed For FOREIGN KEY, utf8mb4 = Full Unicode

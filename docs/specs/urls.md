@@ -4,7 +4,7 @@
 |---|---|
 | **Author** | Daniel S. |
 | **Date** | 11/11/2026 |
-| **Version** | V1.0 |
+| **Version** | V1.1 |
 | **Jira** | URL-10 (URL database). Used by URL-11 (redirect), URL-14 (create page), URL-15 (home page) |
 | **Files** | `app/urls.py`, `urls` table in `app/schema.sql` |
 | **Tests** | `tests/test_urls.py` |
@@ -12,7 +12,7 @@
 ## 1. Purpose
 
 Saves short links, makes random short codes or accepts a custom alias,
-looks a code up for the redirect, counts clicks, and lists or deletes a
+looks a code up for the redirect, and lists or deletes a
 user's links. There are no routes in this file, the pages call these
 functions.
 
@@ -29,7 +29,7 @@ functions.
 
 ## 3. Outputs
 
-A link dict has `id, user_id, code, long_url, clicks, created_at`.
+A link dict has `id, user_id, code, long_url, created_at`.
 
 | Function | Output |
 |---|---|
@@ -37,7 +37,6 @@ A link dict has `id, user_id, code, long_url, clicks, created_at`.
 | `get_url_by_code` | link dict or `None` |
 | `list_urls_for_user` | list of link dicts, newest first (ties broken by id) |
 | `delete_url` | `True` if deleted, `False` if missing or not theirs |
-| `record_click` | `True` if the code exists, else `False` |
 | `generate_code` | 6 random characters from `a-z A-Z 0-9` |
 
 ## 4. Behavior
@@ -54,8 +53,6 @@ A link dict has `id, user_id, code, long_url, clicks, created_at`.
 * **Owner check in SQL.** `delete_url` runs
   `DELETE ... WHERE code = %s AND user_id = %s`, so a user can only delete
   their own links.
-* **Click counting in SQL.** `UPDATE urls SET clicks = clicks + 1` lets
-  MySQL do the math, so two clicks at once can't overwrite each other.
 * **No SQL injection.** All values go through `%s` placeholders. The only
   f-string is the fixed `URL_COLUMNS` list.
 
@@ -71,7 +68,6 @@ A link dict has `id, user_id, code, long_url, clicks, created_at`.
 | `get_url_by_code(code)` | code | link dict or `None` | |
 | `list_urls_for_user(user_id)` | owner | list of link dicts | |
 | `delete_url(user_id, code)` | asker, code | `True` / `False` | |
-| `record_click(code)` | code | `True` / `False` | |
 
 ## 6. Flow Chart: `create_url`
 
@@ -109,7 +105,7 @@ flowchart TD
     F --> G([Return row_id])
 ```
 
-## 8. Flow Chart: `delete_url` and `record_click`
+## 8. Flow Chart: `delete_url`
 
 ```mermaid
 flowchart TD
@@ -117,11 +113,6 @@ flowchart TD
     B --> C["deleted = (rowcount == 1)"]
     C --> D["db.commit()"]
     D --> E([Return deleted])
-
-    F(["record_click(code)"]) --> G["UPDATE urls SET clicks = clicks + 1 WHERE code = code"]
-    G --> H["found = (rowcount == 1)"]
-    H --> I["db.commit()"]
-    I --> J([Return found])
 ```
 
 ## 9. Tests
@@ -130,7 +121,7 @@ flowchart TD
   (including blocking `javascript:`), the alias rules and reserved words in
   any case, code length and randomness, saving a random code, retrying on a
   clash, giving up after 5 tries, aliases, a taken alias, the lookup, newest
-  first listing, deleting your own vs someone else's link, and click counts.
+  first listing, and deleting your own vs someone else's link.
 * Run: `python -m unittest tests.test_urls -v`
 
 ## 10. Known Limits and Notes
@@ -140,5 +131,6 @@ flowchart TD
   billion per link). It would save fine but the fixed page would win at
   that path once `/logout` exists. Could be fixed later by skipping reserved
   codes in the retry loop.
+* Click counts were removed in URL-25, links have no usage numbers.
 * Validation checks the shape of the URL only. It doesn't check that the
   site exists.

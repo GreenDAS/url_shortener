@@ -50,7 +50,6 @@ tables from `app/schema.sql`.
 | `user_id` | INT | NOT NULL, FOREIGN KEY -> `users.id`, ON DELETE CASCADE |
 | `code` | VARCHAR(32) | NOT NULL, UNIQUE, `utf8mb4_bin` (case sensitive) |
 | `long_url` | VARCHAR(2048) | NOT NULL |
-| `clicks` | INT | NOT NULL, default 0 |
 | `created_at` | DATETIME | NOT NULL, defaults to now |
 
 ```mermaid
@@ -66,7 +65,6 @@ erDiagram
         INT user_id FK
         VARCHAR code UK
         VARCHAR long_url
-        INT clicks
         DATETIME created_at
     }
 ```

@@ -2,9 +2,10 @@
 # Author: Daniel S.
 # Date: 11/11/2026
 # File: app/redirect.py
-# Version: V1.1
+# Version: V1.2
 # Description: The short link route (URL-11). Visiting /<code> sends the
-#              browser to the saved long URL with a 302 and counts the click.
+#              browser to the saved long URL with a 302. Nothing is
+#              counted, click counts were removed in URL-25.
 #
 #              The whole round trip:
 #                1. Someone opens url.short.com/aB12cD.
@@ -12,8 +13,8 @@
 #                3. Flask has no fixed page called /aB12cD, so it lands in
 #                   follow_short_link() with code = "aB12cD".
 #                4. app/urls.py looks the code up. Unknown = 404 page.
-#                5. Known = add 1 to its clicks, then answer 302 with a
-#                   Location header of the long URL. The browser follows it.
+#                5. Known = answer 302 with a Location header of the long
+#                   URL. The browser follows it.
 #              This file must be imported last in app/__init__.py so every
 #              fixed page is matched before this catch all.
 #              Spec sheet: docs/specs/redirect.md
@@ -25,12 +26,12 @@
 from flask import abort, redirect  # abort() = Error Page, redirect() = 3xx Response
 
 from app import app  # The Flask Object, For @app.route
-from app.urls import get_url_by_code, record_click  # urls Table Helpers (URL-10)
+from app.urls import get_url_by_code  # urls Table Helper (URL-10)
 
 # ----------------------------------------------------------------------------
 # Constants
 # ----------------------------------------------------------------------------
-REDIRECT_STATUS = 302  # Temporary Redirect, So Browsers Don't Cache It And Clicks Keep Counting
+REDIRECT_STATUS = 302  # Temporary Redirect, So Browsers Don't Cache It And A Deleted Link Stops Working
 
 # ----------------------------------------------------------------------------
 # Routes
@@ -46,5 +47,4 @@ def follow_short_link(code):
     link = get_url_by_code(code)  # None If No Row Has This Code
     if link is None:
         abort(404)  # Stops Here, Flask Sends Its Not Found Page
-    record_click(code)  # Count The Visit Before Leaving The Site
     return redirect(link["long_url"], code=REDIRECT_STATUS)
