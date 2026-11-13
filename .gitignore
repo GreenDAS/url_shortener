@@ -17,3 +17,5 @@ __pycache__/
 *.pyc
 # Real Passwords, Only .env.example Is Committed
 .env
+# Ignore Docs Folder
+*/docs/
