@@ -4,24 +4,23 @@
 |---|---|
 | **Author** | Daniel S. |
 | **Date** | 11/11/2026 |
-| **Version** | V1.0 |
-| **Jira** | URL-12 (user swapping). Login itself is URL-13 |
+| **Version** | V1.1 |
+| **Jira** | URL-12 (user swapping), URL-24 (simplified, no sign in list). The picker page is URL-13 |
 | **Files** | `app/accounts.py` (uses `app/users.py`) |
 | **Tests** | `tests/test_accounts.py` |
 
 ## 1. Purpose
 
-Lets someone who has logged into more than one account on the same browser
-jump between them from a "Switch user" menu without typing the password
-again (decided by Dan 11/11/2026). Each account must have logged in on this
-browser once, with its password, before it can be switched to.
+Lets whoever is using the site swap between users. The session remembers
+one thing, the current user's id, and one POST changes it to any user that
+exists. There are no passwords and no login, because the class only asks for
+the ability to swap between users, not authentication (URL-23, URL-24).
 
 ## 2. Inputs
 
 | Input | Where | Notes |
 |---|---|---|
-| `user_id` | login route (URL-13) after `verify_user()` passes | goes to `add_account()` |
-| `user_id` | `POST /switch/<int:user_id>` from the header menu | must be an int, else 404 |
+| `user_id` | `POST /switch/<int:user_id>` from the "Switch user" control | must be an int, else 404 |
 | Session cookie | the browser | signed with `SECRET_KEY` so it can't be edited |
 
 ## 3. Outputs and State
@@ -30,28 +29,26 @@ The session (Flask's signed cookie) holds:
 
 | Key | Example | Meaning |
 |---|---|---|
-| `account_ids` (`ACCOUNTS_KEY`) | `[7, 3, 12]` | every account signed in here, most recently used first, at most 5 (`MAX_ACCOUNTS`) |
-| `user_id` (`ACTIVE_KEY`) | `7` | the active account |
+| `user_id` (`ACTIVE_KEY`) | `7` | the current user |
 
 | Function / Route | Output |
 |---|---|
-| `POST /switch/<id>` | `302` to `/` if that id is signed in here, else `403 Forbidden` |
+| `POST /switch/<id>` | `302` to `/` if a user has that id, else `404 Not Found` |
 | `GET /switch/<id>` | `405 Method Not Allowed` |
-| `switch_choices()` | list of `{id, username, active}` for the menu |
+| `switch_choices()` | list of `{id, username, active}` for the control |
 
 ## 4. Behavior
 
-* **add_account(id)** removes the id if it's already in the list, puts it
-  first, trims the list to 5 (oldest falls off) and makes it active.
-* **switch_to(id)** only works for ids already in the list, and reuses
-  `add_account` so the account moves to the front.
-* **remove_active_account()** takes the active id out. If anyone is left,
-  the first one becomes active. Otherwise `user_id` is removed (logged out).
-* **switch_choices()** looks up each id's username and skips ids whose
-  account has been deleted since.
-* **Safety:**
-  * The cookie is signed, so a user can't add someone else's id.
-  * `/switch` is POST only, so a link someone sends can't swap your account.
+* **switch_to(id)** looks the id up with `get_user_by_id`. If the user
+  exists it sets `session["user_id"]` and returns `True`. If not, it
+  changes nothing and returns `False`.
+* **switch_choices()** takes every user from `list_users()` (A to Z) and
+  marks the one whose id matches the session as `active`.
+* **current_user_id()** is what every other page uses to know whose links
+  to show. Each user still only sees and deletes their own links, because
+  `list_urls_for_user` and `delete_url` both filter by this id.
+* **Safety that is kept:**
+  * `/switch` is POST only, so a link someone sends can't swap your user.
   * It always redirects to `/`, never to the Referer, so it can't be used to
     bounce people to another site.
 
@@ -59,77 +56,48 @@ The session (Flask's signed cookie) holds:
 
 | Function | Arg(s) | Returns |
 |---|---|---|
-| `signed_in_ids()` | | copy of the id list (empty if none) |
-| `add_account(user_id)` | id that just logged in | Nothing |
-| `switch_to(user_id)` | id to swap to | `True` if swapped, `False` if not signed in here |
-| `remove_active_account()` | | new active id, or `None` |
-| `current_user_id()` | | active id, or `None` |
-| `switch_choices()` | | list of menu dicts |
-| `switch_user(user_id)` | route `POST /switch/<int:user_id>` | redirect to `/`, or 403 |
+| `current_user_id()` | | current id, or `None` |
+| `switch_to(user_id)` | id to swap to | `True` if swapped, `False` if no such user |
+| `switch_choices()` | | list of `{id, username, active}` |
+| `switch_user(user_id)` | route `POST /switch/<int:user_id>` | redirect to `/`, or 404 |
 
 ## 6. Flow Chart: `POST /switch/<id>`
 
 ```mermaid
 flowchart TD
-    A(["Header menu: POST /switch/ID"]) --> B{"ID is an int?"}
+    A(["Switch user control: POST /switch/ID"]) --> B{"ID is an int?"}
     B -->|No| X0([404 Not Found])
     B -->|Yes| C["switch_user(ID) calls switch_to(ID)"]
-    C --> D{"ID in session account_ids?"}
-    D -->|No| X1(["abort(403)"])
-    D -->|Yes| E["add_account(ID)"]
+    C --> D{"get_user_by_id(ID) found a user?"}
+    D -->|No| X1(["abort(404)"])
+    D -->|Yes| E["session user_id = ID"]
     E --> F([302 redirect to /])
 ```
 
-## 7. Flow Chart: `add_account`
+## 7. Flow Chart: `switch_choices` (list for the control)
 
 ```mermaid
 flowchart TD
-    A(["add_account(user_id)"]) --> B["ids = signed_in_ids() without user_id"]
-    B --> C["Insert user_id at the front"]
-    C --> D["session account_ids = first 5 of ids"]
-    D --> E["session user_id = user_id"]
-    E --> F([Done])
+    A(["switch_choices()"]) --> B["active_id = current_user_id()"]
+    B --> C["users = list_users(), sorted A to Z"]
+    C --> D{Next user?}
+    D -->|No more| Z([Return choices])
+    D -->|user| E["Add id, username, active = (id == active_id)"]
+    E --> D
 ```
 
-## 8. Flow Chart: `remove_active_account` (log out one account)
-
-```mermaid
-flowchart TD
-    A(["remove_active_account()"]) --> B["ids = signed_in_ids() without the active id"]
-    B --> C["session account_ids = ids"]
-    C --> D{ids empty?}
-    D -->|No| E["session user_id = ids[0]"]
-    E --> F(["Return ids[0]"])
-    D -->|Yes| G["Remove user_id from the session"]
-    G --> H([Return None])
-```
-
-## 9. Flow Chart: `switch_choices` (menu list)
-
-```mermaid
-flowchart TD
-    A(["switch_choices()"]) --> B["choices = []"]
-    B --> C{Next id in signed_in_ids?}
-    C -->|No more| Z([Return choices])
-    C -->|id| D["get_user_by_id(id)"]
-    D --> E{Account still exists?}
-    E -->|No| C
-    E -->|Yes| F["Add id, username, active = (id == current_user_id())"]
-    F --> C
-```
-
-## 10. Tests
+## 8. Tests
 
 * `tests/test_accounts.py` runs inside `app.test_request_context()` with
-  `get_user_by_id` mocked. It checks first login, newest first ordering, no
-  duplicates, the 5 account cap, switching to a signed in vs unknown
-  account, logout handing over to the next account and logging fully out,
-  the menu (active flag, deleted accounts skipped), and the route's 302,
-  403 and 405.
+  `get_user_by_id` and `list_users` mocked. It checks that nobody is
+  current at first, switching to a real user, that an unknown id changes
+  nothing, the choices list (order and active flag), and the route's 302,
+  404 and 405.
 * Run: `python -m unittest tests.test_accounts -v`
 
-## 11. Known Limits and Notes
+## 9. Known Limits and Notes
 
-* Nothing calls `add_account()` yet because the login page (URL-13) isn't
-  built. Until then the list is always empty and every switch is a 403.
-* The header menu and logout route are not built yet either.
+* Anyone can switch to any user. That is on purpose, see Purpose.
+* If the current user is deleted, the session still holds the old id until
+  the next switch. Pages should treat an id with no user as "nobody picked".
+* The picker page and "Switch user" control are not built yet (URL-13).

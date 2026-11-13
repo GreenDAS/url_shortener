@@ -20,7 +20,7 @@
 #                   bottom and not at the top.
 #              app/redirect.py is imported LAST on purpose. Its /<code> route
 #              catches any single word path, so every fixed page (/, /index,
-#              /switch/<id>, later /login) is registered before it.
+#              /switch/<id>, later the picker) is registered before it.
 #              Spec sheet: docs/specs/app-startup.md
 # ----------------------------------------------------------------------------
 
