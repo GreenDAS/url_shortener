@@ -2,7 +2,7 @@
 # Author: Daniel S.
 # Date: 11/11/2026
 # File: app/db.py
-# Version: V1.1
+# Version: V1.2
 # Description: Opens and closes the MySQL connection for each request and
 #              adds the "flask init-db" command that builds the tables.
 #
@@ -13,8 +13,9 @@
 #                   Later calls in the same request get that same connection.
 #                3. When the request ends, Flask calls close_db(), which
 #                   closes it. init_app() is what tells Flask to do that.
-#              Settings are read from app.config (filled by app/config.py),
-#              with an environment variable fallback and then a default.
+#              Settings are read from app.config only. app/config.py is the
+#              one place that reads .env / the environment and holds the
+#              defaults (URL-26), so the two files can't disagree.
 #              "flask --app url_shortener init-db" runs app/schema.sql.
 #              Spec sheet: docs/specs/database.md
 # ----------------------------------------------------------------------------
@@ -22,7 +23,6 @@
 # ----------------------------------------------------------------------------
 # Imports
 # ----------------------------------------------------------------------------
-import os  # Environment Variable Fallback For Settings
 from importlib import resources  # Finds schema.sql Inside The app Package
 
 import click  # Flask's Command Line Tool Is Built On Click
@@ -30,43 +30,26 @@ import pymysql  # Pure Python MySQL Driver
 from flask import current_app, g  # current_app = The Running App, g = Per Request Storage
 
 # ----------------------------------------------------------------------------
-# Constants
-# ----------------------------------------------------------------------------
-DEFAULT_MYSQL_HOST = "127.0.0.1"  # Used When Nothing Is Set (flask run On The Laptop)
-DEFAULT_MYSQL_PORT = 3307  # Port The MySQL Container Publishes On The Host
-DEFAULT_MYSQL_DB = "url_shortener"
-
-# ----------------------------------------------------------------------------
 # Functions
 # ----------------------------------------------------------------------------
-def _setting(name, default):
-    """
-    Looks up one MySQL setting. An empty string counts as "not set" so a
-    blank line in .env (e.g. MYSQL_HOST=) falls through to the next source.
-    Arg1 = name, the config key (e.g. "MYSQL_HOST")
-    Arg2 = default, value to use if it is not set anywhere
-    Returns: app.config value if set, Else: environment variable, Else: default
-    """
-    value = current_app.config.get(name)  # Normally Filled By app/config.py
-    if value in (None, ""):
-        value = os.environ.get(name, default)  # Fallback So This Works Before app/config.py Exists
-    return value
-
-
 def connection_settings():
     """
     Collects everything pymysql.connect() needs, in one place so tests can
-    check the values without opening a real connection.
+    check the values without opening a real connection. The MYSQL_* values
+    come straight from app.config, which app/config.py's load_config()
+    always fills in (with its defaults when .env leaves one out).
     Returns: dict of keyword args for pymysql.connect() (host, port, user,
              password, database, charset, cursorclass, autocommit)
-    Raises: ValueError if MYSQL_PORT is not a number
+    Raises: KeyError if a MYSQL_* key is missing from app.config,
+            ValueError if MYSQL_PORT is not a number
     """
+    config = current_app.config  # Filled Once At Startup By app/config.py
     return {
-        "host": _setting("MYSQL_HOST", DEFAULT_MYSQL_HOST),
-        "port": int(_setting("MYSQL_PORT", DEFAULT_MYSQL_PORT)),  # Env Values Are Strings
-        "user": _setting("MYSQL_USER", ""),
-        "password": _setting("MYSQL_PASSWORD", ""),
-        "database": _setting("MYSQL_DB", DEFAULT_MYSQL_DB),
+        "host": config["MYSQL_HOST"],
+        "port": int(config["MYSQL_PORT"]),  # Already An int From load_config(), int() Covers A String Set By Hand
+        "user": config["MYSQL_USER"],
+        "password": config["MYSQL_PASSWORD"],
+        "database": config["MYSQL_DB"],
         "charset": "utf8mb4",  # Full Unicode, Matches The Tables In schema.sql
         "cursorclass": pymysql.cursors.DictCursor,  # Rows Come Back As Dicts, Not Tuples
         "autocommit": False,  # Writers Call commit() Themselves

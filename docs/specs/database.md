@@ -4,8 +4,8 @@
 |---|---|
 | **Author** | Daniel S. |
 | **Date** | 11/11/2026 |
-| **Version** | V1.0 |
-| **Jira** | URL-9 (users table), URL-10 (urls table) |
+| **Version** | V1.1 |
+| **Jira** | URL-9 (users table), URL-10 (urls table), URL-26 (settings in one place) |
 | **Course spec** | DB-2 (host.docker.internal), DB-5 |
 | **Files** | `app/db.py`, `app/schema.sql` |
 | **Tests** | `tests/test_db.py` |
@@ -20,9 +20,10 @@ tables from `app/schema.sql`.
 
 * `app.config` keys `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`,
   `MYSQL_PASSWORD`, `MYSQL_DB` (filled by `app/config.py`).
-* If a key is missing or empty in `app.config`, the same name as an
-  environment variable, and if that is missing too, the defaults
-  `127.0.0.1`, `3307`, `""`, `""`, `url_shortener`.
+* `app/db.py` has no defaults and no environment variable fallback of its
+  own (URL-26). `load_config()` in `app/config.py` always fills all five
+  keys, using its own defaults when `.env` leaves one out, so there is one
+  place to look. See the app startup spec sheet for the defaults.
 * `app/schema.sql`, read from inside the `app` package.
 
 ## 3. Outputs
@@ -84,8 +85,7 @@ erDiagram
 
 | Function | Arg(s) | Returns | Raises |
 |---|---|---|---|
-| `_setting(name, default)` | config key, fallback | app.config value, else env var, else default | |
-| `connection_settings()` | | dict of `pymysql.connect()` kwargs | `ValueError` if port isn't a number |
+| `connection_settings()` | | dict of `pymysql.connect()` kwargs, read from `app.config` | `KeyError` if a `MYSQL_*` key is missing, `ValueError` if port isn't a number |
 | `get_db()` | | the request's connection | `pymysql.err.OperationalError` if MySQL is unreachable |
 | `close_db(error=None)` | exception from Flask (unused) | Nothing | |
 | `split_sql_statements(script)` | text of a .sql file | list of statements | |
@@ -101,7 +101,7 @@ flowchart TD
     B -->|No| Z
     B -->|Yes| C{"'db' already on g?"}
     C -->|Yes| D[Return g.db]
-    C -->|No| E["connection_settings(): app.config, else env, else default"]
+    C -->|No| E["connection_settings(): reads MYSQL_* from app.config"]
     E --> F["g.db = pymysql.connect(...)"]
     F --> D
     D --> G[Run queries, commit or rollback]
