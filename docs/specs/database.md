@@ -16,6 +16,9 @@ Gives every request one MySQL connection, closes it when the request ends,
 and adds the `flask --app url_shortener init-db` command that creates the
 tables from `app/schema.sql`.
 
+MySQL itself runs on the host laptop, not in a container (URL-29). The
+setup steps are in the [host MySQL spec sheet](host-mysql.md).
+
 ## 2. Inputs
 
 * `app.config` keys `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`,

@@ -2,7 +2,7 @@
 # Author: Daniel S.
 # Date: 11/11/2026
 # File: tests/test_config.py
-# Version: V1.1
+# Version: V1.2
 # Description: Unit tests for app/config.py (.env loading, spec DB-2).
 #
 #              Uses mock.patch.dict(os.environ) and temporary .env files so each
@@ -57,15 +57,15 @@ class TestLoadConfig(unittest.TestCase):
         return handle.name
 
     def test_defaults_point_at_host_docker_internal(self):
-        """With no .env, MySQL host defaults to host.docker.internal (DB-2)."""
+        """With no .env, MySQL defaults to the host laptop's MySQL: host.docker.internal:3306 (DB-1, DB-2)."""
         config = load_config(self.write_env(""))
         self.assertEqual(config["MYSQL_HOST"], "host.docker.internal")
-        self.assertEqual(config["MYSQL_PORT"], 3307)
+        self.assertEqual(config["MYSQL_PORT"], 3306)
 
     def test_reads_values_from_env_file(self):
         """Values in the .env file end up in the config."""
         path = self.write_env(
-            "MYSQL_HOST=host.docker.internal\nMYSQL_PORT=3307\nMYSQL_USER=geneva\n"
+            "MYSQL_HOST=host.docker.internal\nMYSQL_PORT=3306\nMYSQL_USER=geneva\n"
             "MYSQL_PASSWORD=pw\nMYSQL_DB=csc203_urls\nSECRET_KEY=abc\n"
         )
         config = load_config(path)

@@ -4,7 +4,7 @@
 |---|---|
 | **Author** | Daniel S. |
 | **Date** | 11/11/2026 |
-| **Version** | V1.0 |
+| **Version** | V1.1 |
 | **Jira** | URL-4 (Infra epic), Gunicorn work merged in PR #1 |
 | **Course spec** | PRE-4, WSGI-1 to WSGI-5, DOC-1 to DOC-7, DB-2, DB-5 |
 | **Files** | `url_shortener.py`, `app/__init__.py`, `app/config.py`, `gunicorn_config.py`, `Dockerfile`, `compose.yaml`, `compose.dev.yaml`, `.env.example` |
@@ -22,12 +22,11 @@ All four end up with the same `app` object from `app/__init__.py`.
 | Input | Where it comes from | Used by | Default if missing |
 |---|---|---|---|
 | `MYSQL_HOST` | env var or `.env` | `app/config.py` -> `app/db.py` | `host.docker.internal` |
-| `MYSQL_PORT` | env var or `.env` | same | `3307` (turned into an int) |
-| `MYSQL_USER` | env var or `.env` | same, and `compose.yaml` | `""` |
-| `MYSQL_PASSWORD` | env var or `.env` | same, and `compose.yaml` | `""` |
-| `MYSQL_DB` | env var or `.env` | same, and `compose.yaml` | `url_shortener` |
+| `MYSQL_PORT` | env var or `.env` | same | `3306` (turned into an int) |
+| `MYSQL_USER` | env var or `.env` | same | `""` |
+| `MYSQL_PASSWORD` | env var or `.env` | same | `""` |
+| `MYSQL_DB` | env var or `.env` | same | `url_shortener` |
 | `SECRET_KEY` | env var or `.env` | Flask session signing | `dev-only-not-secret` |
-| `MYSQL_ROOT_PASSWORD` | `.env` | `compose.yaml` only (first start of the MySQL container) | none, required by MySQL |
 | `APP_PORT` | env var | `gunicorn_config.py` | `5000` |
 | `GUNICORN_WORKERS` | env var | `gunicorn_config.py` | `(2 x CPU cores) + 1` |
 
@@ -40,8 +39,9 @@ because `load_dotenv(override=False)` never replaces a name that is already set.
   the database hooked in, and every route registered.
 * Gunicorn listening on `0.0.0.0:<APP_PORT>` with access logs on stdout and
   error logs on stderr (seen with `docker logs url_shortener_web`).
-* Two containers from `docker compose up --build -d`:
-  `url_shortener_web` (port 5000) and `url_shortener_db` (host port 3307 -> 3306).
+* One container from `docker compose up --build -d`: `url_shortener_web`
+  (port 5000). MySQL is not a container, it runs on the host laptop on port
+  3306 (DB-1, URL-29). See the [host MySQL spec sheet](host-mysql.md).
 
 ## 4. Behavior
 
@@ -74,10 +74,7 @@ because `load_dotenv(override=False)` never replaces a name that is already set.
 ```mermaid
 flowchart TD
     A([Start]) --> B{How was it started?}
-    B -->|docker compose up| C[compose.yaml starts db container]
-    C --> D{db healthcheck passes?}
-    D -->|No, retry every 5s up to 20x| D
-    D -->|Yes| E[Start web container]
+    B -->|docker compose up| E[compose.yaml starts the web container]
     E --> F["Dockerfile CMD: gunicorn -c ./gunicorn_config.py"]
     F --> G["Gunicorn imports url_shortener:app"]
     B -->|python url_shortener.py| G2["Python runs url_shortener.py"]
@@ -131,3 +128,6 @@ flowchart TD
 * `app/config.py` is the only place with MySQL defaults (URL-26).
   `app/db.py` reads `app.config` and nothing else.
 * `compose.dev.yaml` is for development only (live reload, 1 worker).
+* Compose no longer starts MySQL or waits for it. If MySQL on the laptop
+  is not running, the app still starts and the first page that needs the
+  database fails with a connection error.

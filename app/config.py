@@ -2,7 +2,7 @@
 # Author: Daniel S.
 # Date: 11/11/2026
 # File: app/config.py
-# Version: V1.2
+# Version: V1.3
 # Description: Reads the app settings (MySQL connection, secret key) from the
 #              .env file and environment variables (spec DB-2, DB-5).
 #
@@ -30,7 +30,7 @@ from dotenv import load_dotenv  # python-dotenv: Copies .env Lines Into os.envir
 # Constants
 # ----------------------------------------------------------------------------
 DEFAULT_MYSQL_HOST = "host.docker.internal"  # Host Machine As Seen From The Container
-DEFAULT_MYSQL_PORT = 3307  # Port The MySQL Container Publishes On The Host
+DEFAULT_MYSQL_PORT = 3306  # Port The Host's MySQL Install Listens On (DB-1)
 DEFAULT_MYSQL_DB = "url_shortener"  # Database (Schema) Name
 
 # ----------------------------------------------------------------------------
@@ -56,7 +56,7 @@ def load_config(env_file=None):
     load_dotenv(env_file, override=False)  # Real Environment Variables Win Over .env
 
     return {
-        "MYSQL_HOST": os.environ.get("MYSQL_HOST", DEFAULT_MYSQL_HOST),  # Where MySQL Runs
+        "MYSQL_HOST": os.environ.get("MYSQL_HOST", DEFAULT_MYSQL_HOST),  # Where MySQL Runs (The Host Laptop)
         "MYSQL_PORT": int(os.environ.get("MYSQL_PORT", DEFAULT_MYSQL_PORT)),  # String -> int
         "MYSQL_USER": os.environ.get("MYSQL_USER", ""),  # App's MySQL Account (DB-3)
         "MYSQL_PASSWORD": os.environ.get("MYSQL_PASSWORD", ""),

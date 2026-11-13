@@ -12,6 +12,7 @@ and one or more Mermaid flow charts. Mermaid renders on GitHub and in VS Code
 | Feature | Jira | Spec sheet | Code |
 |---|---|---|---|
 | App startup, config, Gunicorn, Docker | URL-4 | [app-startup.md](specs/app-startup.md) | `url_shortener.py`, `app/__init__.py`, `app/config.py`, `gunicorn_config.py`, `Dockerfile`, `compose*.yaml` |
+| Host MySQL (database outside the container) | URL-29 | [host-mysql.md](specs/host-mysql.md) | `compose.yaml`, `.env.example` |
 | Database connection and `flask init-db` | URL-9, URL-10 | [database.md](specs/database.md) | `app/db.py`, `app/schema.sql` |
 | Users (usernames, no passwords) | URL-9 | [users.md](specs/users.md) | `app/users.py` |
 | URLs (short codes, links) | URL-10 | [urls.md](specs/urls.md) | `app/urls.py` |
@@ -33,7 +34,7 @@ flowchart LR
     R3 --> UR[urls.py]
     US --> DB[db.py]
     UR --> DB
-    DB -->|"PyMySQL, host.docker.internal:3307"| M[("MySQL 8.4 container")]
+    DB -->|"PyMySQL, host.docker.internal:3306"| M[("MySQL 8.4 on the host laptop")]
     CFG[".env via config.py"] -.-> F
 ```
 
