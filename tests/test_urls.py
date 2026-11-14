@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/11/2026
+# Date: 11/13/2026
 # File: tests/test_urls.py
-# Version: V1.2
+# Version: V1.3
 # Description: Unit tests for app/urls.py. get_db() is replaced with a mock
 #              so no MySQL server is needed.
 #
@@ -100,6 +100,12 @@ class TestValidateAlias(unittest.TestCase):
     def test_reserved_word_fails_any_case(self):
         """Page names like login are reserved, even typed as LOGIN."""
         for word in ("login", "LOGIN", "Api"):
+            with self.subTest(word=word), self.assertRaises(urls.UrlError):
+                urls.validate_alias(word)
+
+    def test_form_addresses_are_reserved(self):
+        """users, switch and links are where the forms post, so no alias can take them (URL-13)."""
+        for word in ("users", "switch", "links", "Users"):
             with self.subTest(word=word), self.assertRaises(urls.UrlError):
                 urls.validate_alias(word)
 
