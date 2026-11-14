@@ -4,12 +4,14 @@
   Author: Daniel S.
   Date: 11/13/2026
   File: app/templates/home.html
-  Version: V1.1
+  Version: V1.2
   Description: The home page (/ and /index). The header with the user picker
                comes from base.html. With no current user, this page asks me
                to pick or add one (URL-13). With a user, it lists that user's
                links in a table, newest first, each with a Delete button
-               (URL-15). Plain HTML forms only, no JavaScript.
+               (URL-15). Above the table is the create short link form
+               (URL-14) with an optional custom alias box (URL-22).
+               Plain HTML forms only, no JavaScript.
 
   AI Use:      Claude (AI) was used to create this file. Prompt used:
                "Please create a GUI for my URL_Shortener Project given my
@@ -17,14 +19,16 @@
                note of any controls not implemented yet that need to be."
 
   Controls Not Implemented Yet:
-               Create short link form                 -> URL-14
-               Custom alias box on that form          -> URL-22
+               None. Create, custom alias and Delete all work.
 
   What Flask Passes In (see render_home() in app/routes.py), plus base.html's:
                links    = list of the current user's link rows (code,
                           long_url, created_at), newest first
                base_url = the site's address with a "/" on the end, put in
                           front of each code to make the short link
+               link_error = message to show above the create form, or None
+               typed_long_url, typed_alias = what was typed in the form, so
+                          a bad entry is not lost
   Spec sheet: docs/specs/home-page.md
   ----------------------------------------------------------------------------
 -->
@@ -34,6 +38,28 @@
   <h2>Welcome</h2>
   <p>Pick a user from the "Switch user" list above, or add a new one, to get started.</p>
   {% else %}
+  <h2>Shorten a link</h2>
+
+  <!-- A Bad URL, Or A Bad Or Taken Alias, Shows Here -->
+  {% if link_error %}
+  <p class="error">{{ link_error }}</p>
+  {% endif %}
+
+  <!-- Create Form: Posts To POST /links (app/routes.py), Which Calls create_url() -->
+  <form method="post" action="/links">
+    <p>
+      <label for="long_url">Long URL:</label>
+      <input type="text" id="long_url" name="long_url" size="60" maxlength="2048"
+             placeholder="https://example.com/a/very/long/address" value="{{ typed_long_url or '' }}" required>
+    </p>
+    <p>
+      <label for="alias">Custom alias (optional):</label>
+      <input type="text" id="alias" name="alias" size="20" maxlength="32"
+             placeholder="leave empty for a random code" value="{{ typed_alias or '' }}">
+      <button type="submit">Shorten</button>
+    </p>
+  </form>
+
   <h2>{{ user.username }}'s links</h2>
   {% if not links %}
   <p>No links yet.</p>
