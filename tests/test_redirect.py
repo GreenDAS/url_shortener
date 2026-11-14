@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/11/2026
+# Date: 11/13/2026
 # File: tests/test_redirect.py
-# Version: V1.2
+# Version: V1.3
 # Description: Unit tests for app/redirect.py using Flask's test client. The
 #              database lookups are mocked so no MySQL server is needed.
 #
@@ -63,7 +63,8 @@ class TestFollowShortLink(unittest.TestCase):
 
     def test_fixed_routes_win_over_codes(self):
         """/index is a real page, so it never reaches the short link lookup."""
-        self.assertEqual(self.client.get("/index").status_code, 200)
+        with mock.patch("app.accounts.list_users", return_value=[]):  # The Home Page's Picker Reads The Users
+            self.assertEqual(self.client.get("/index").status_code, 200)
         self.get_url_by_code.assert_not_called()
 
     def test_codes_are_case_sensitive(self):

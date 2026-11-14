@@ -4,7 +4,7 @@
 |---|---|
 | **Author** | Daniel S. |
 | **Date** | 11/11/2026 |
-| **Version** | V1.1 |
+| **Version** | V1.2 |
 | **Jira** | URL-10 (URL database). Used by URL-11 (redirect), URL-14 (create page), URL-15 (home page) |
 | **Files** | `app/urls.py`, `urls` table in `app/schema.sql` |
 | **Tests** | `tests/test_urls.py` |
@@ -25,7 +25,8 @@ functions.
 | `user_id` | the owner's `users.id` |
 | `code` | the part after the domain, matched case sensitively |
 
-`RESERVED_CODES` = `login, logout, home, api, static, admin, favicon.ico, index`.
+`RESERVED_CODES` = `login, logout, home, api, static, admin, favicon.ico, index,
+users, switch, links`. The last three are the addresses the page's forms post to.
 
 ## 3. Outputs
 

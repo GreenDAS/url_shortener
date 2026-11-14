@@ -1,0 +1,97 @@
+<!doctype html>
+<!--
+  ----------------------------------------------------------------------------
+  Author: Daniel S.
+  Date: 11/13/2026
+  File: app/templates/base.html
+  Version: V1.0
+  Description: The page frame every page of the site uses. It holds the
+               header with the user picker (URL-13): a dropdown to switch to
+               any existing user, and a box to add a new user. There are no
+               passwords, the class only asks for swapping between users.
+
+               Other pages "extend" this file and fill in the content block.
+               Plain HTML forms only, no JavaScript.
+
+  AI Use:      Claude (AI) was used to create this file. Prompt used:
+               "Please create a GUI for my URL_Shortener Project given my
+               Jira for spec/requirements and the GitHub for controls. Make
+               note of any controls not implemented yet that need to be."
+
+  Controls Not Implemented Yet:
+               None in this file. Switch user and Add user both work.
+
+  What Flask Passes In (see render_home() in app/routes.py):
+               user        = the current user's row (id, username), or None
+               choices     = list of {id, username, active} for the dropdown
+               user_error  = message to show under the picker, or None
+               typed_username = what was typed in the Add user box, so a
+                                bad name is not lost
+  Spec sheet: docs/specs/user-picker.md
+  ----------------------------------------------------------------------------
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>URL Shortener</title>
+  <style>
+    /* Plain Styling Only, Kept In This One File So There Is No Static Folder To Serve */
+    body { font-family: Arial, Helvetica, sans-serif; margin: 0; color: #222; background: #f4f6f8; }
+    header { background: #114b5f; color: #fff; padding: 12px 24px; }
+    header h1 { margin: 0 0 8px 0; font-size: 22px; }
+    header form { display: inline-block; margin-right: 24px; }
+    header label { margin-right: 6px; }
+    main { max-width: 900px; margin: 24px auto; padding: 0 24px; }
+    table { border-collapse: collapse; width: 100%; background: #fff; }
+    th, td { border: 1px solid #ccd3d9; padding: 8px 10px; text-align: left; }
+    th { background: #e8eef1; }
+    td.long-url { word-break: break-all; }  /* Long Links Wrap Instead Of Stretching The Table */
+    input[type=text], select { padding: 6px; }
+    button { padding: 6px 12px; cursor: pointer; }
+    .error { color: #b00020; font-weight: bold; }
+    header .error { color: #ffd6d6; margin: 8px 0 0 0; }
+    .current { margin: 8px 0 0 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>URL Shortener</h1>
+
+    <!-- Switch User: The Dropdown Posts The Picked users.id To POST /switch (app/accounts.py) -->
+    {% if choices %}
+    <form method="post" action="/switch">
+      <label for="user_id">Switch user:</label>
+      <select id="user_id" name="user_id">
+        {% for choice in choices %}
+        <option value="{{ choice.id }}" {% if choice.active %}selected{% endif %}>{{ choice.username }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit">Switch</button>
+    </form>
+    {% endif %}
+
+    <!-- Add User: Posts The Typed Name To POST /users (app/routes.py), Which Creates It And Switches To It -->
+    <form method="post" action="/users">
+      <label for="username">Add user:</label>
+      <input type="text" id="username" name="username" maxlength="50" placeholder="new username"
+             value="{{ typed_username or '' }}" required>
+      <button type="submit">Add user</button>
+    </form>
+
+    <!-- A Bad Or Taken Username Shows Here -->
+    {% if user_error %}
+    <p class="error">{{ user_error }}</p>
+    {% endif %}
+
+    <!-- Who Is Being Used Right Now -->
+    {% if user %}
+    <p class="current">Current user: <strong>{{ user.username }}</strong></p>
+    {% endif %}
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
