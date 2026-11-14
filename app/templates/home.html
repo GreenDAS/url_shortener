@@ -4,10 +4,12 @@
   Author: Daniel S.
   Date: 11/13/2026
   File: app/templates/home.html
-  Version: V1.0
+  Version: V1.1
   Description: The home page (/ and /index). The header with the user picker
                comes from base.html. With no current user, this page asks me
-               to pick or add one (URL-13).
+               to pick or add one (URL-13). With a user, it lists that user's
+               links in a table, newest first, each with a Delete button
+               (URL-15). Plain HTML forms only, no JavaScript.
 
   AI Use:      Claude (AI) was used to create this file. Prompt used:
                "Please create a GUI for my URL_Shortener Project given my
@@ -15,11 +17,14 @@
                note of any controls not implemented yet that need to be."
 
   Controls Not Implemented Yet:
-               List of my links with a Delete button  -> URL-15
                Create short link form                 -> URL-14
                Custom alias box on that form          -> URL-22
 
-  What Flask Passes In: see base.html
+  What Flask Passes In (see render_home() in app/routes.py), plus base.html's:
+               links    = list of the current user's link rows (code,
+                          long_url, created_at), newest first
+               base_url = the site's address with a "/" on the end, put in
+                          front of each code to make the short link
   Spec sheet: docs/specs/home-page.md
   ----------------------------------------------------------------------------
 -->
@@ -30,6 +35,31 @@
   <p>Pick a user from the "Switch user" list above, or add a new one, to get started.</p>
   {% else %}
   <h2>{{ user.username }}'s links</h2>
-  <p>The list of links and the create form are not built yet (URL-15, URL-14).</p>
+  {% if not links %}
+  <p>No links yet.</p>
+  {% else %}
+  <table>
+    <tr>
+      <th>Short link</th>
+      <th>Original URL</th>
+      <th>Created</th>
+      <th></th>
+    </tr>
+    {% for link in links %}
+    <tr>
+      {# base_url + code = The Short Link, Clicking It Goes Through The Redirect (URL-11) #}
+      <td><a href="{{ base_url }}{{ link.code }}">{{ base_url }}{{ link.code }}</a></td>
+      <td class="long-url">{{ link.long_url }}</td>
+      <td>{{ link.created_at.strftime("%m/%d/%Y") }}</td>
+      <td>
+        {# One Small Form Per Row, So Delete Is A POST And Not A Link #}
+        <form method="post" action="/links/{{ link.code }}/delete">
+          <button type="submit">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
   {% endif %}
 {% endblock %}
