@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/11/2026
+# Date: 11/13/2026
 # File: app/urls.py
-# Version: V1.2
+# Version: V1.3
 # Description: Functions for the urls table (URL-10). Makes short codes,
 #              saves links, looks them up for the redirect (URL-11) and lists
 #              or deletes a user's links for the home page (URL-15).
@@ -40,7 +40,8 @@ MAX_URL_LENGTH = 2048  # Matches VARCHAR(2048) In schema.sql
 ALIAS_PATTERN = re.compile(r"^[A-Za-z0-9_-]{3,32}$")  # Custom Alias: 3-32 Letters, Numbers, "_" Or "-"
 
 # Codes That Would Clash With The App's Own Pages, Since Short Links Live At /<code>
-RESERVED_CODES = {"login", "logout", "home", "api", "static", "admin", "favicon.ico", "index"}
+RESERVED_CODES = {"login", "logout", "home", "api", "static", "admin", "favicon.ico", "index",
+                  "users", "switch", "links"}  # The Last Three Are Where The Forms Post To
 
 URL_COLUMNS = "id, user_id, code, long_url, created_at"  # Same Columns For Every SELECT
 
