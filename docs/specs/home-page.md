@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | **Author** | Daniel S. |
-| **Date** | 11/13/2026 |
-| **Version** | V1.3 |
+| **Date** | 11/15/2026 |
+| **Version** | V1.4 |
 | **Jira** | URL-15 (list of my links, Delete), URL-13 (pick or add a user message). The create form on this page is URL-14, see [create-form.md](create-form.md) |
 | **Files** | `app/routes.py`, `app/templates/home.html`, `app/templates/base.html` |
 | **Tests** | `tests/test_home.py`, `tests/test_routes.py`, `tests/test_picker.py` |
@@ -58,9 +58,11 @@ Table columns:
 * **Only my links:** `links` comes from `list_urls_for_user(user id)`, which
   filters by owner in its SQL and sorts newest first. With nobody picked the
   list is empty and the database isn't asked.
-* **Short link address:** `base_url` is `request.host_url`, the address the
-  browser used. So the links read `http://127.0.0.1:5000/...` when the page
-  is opened that way and `http://url.short.com/...` through Apache.
+* **Short link address:** `base_url` is the `SITE_URL` setting from
+  `app/config.py` plus a `/`. Its default is `http://url.short.com`, so the
+  links always read `http://url.short.com/...`, even when the page itself
+  was opened as `http://127.0.0.1:5000/` or `localhost`. It no longer follows
+  the address the browser used. Setting: [app-startup.md](app-startup.md).
 * **Delete only removes my own link:** `delete_link()` passes the current
   user's id to `delete_url()`, whose DELETE statement has the owner check in
   it. Guessing another user's code gets a 404 and removes nothing.
