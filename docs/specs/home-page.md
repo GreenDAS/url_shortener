@@ -116,7 +116,7 @@ flowchart TD
 
 ## 7. Tests
 
-* `tests/test_home.py` covers the table (rows, short link address, date,
+* `tests/test_home.py` covers the table (rows, short link always on url.short.com, date,
   escaping, "No links yet."), that only the current user's id is asked for,
   and Delete (works, not mine, nobody picked, GET refused).
 * `tests/test_routes.py` checks `/` and `/index` return 200 and that a made
