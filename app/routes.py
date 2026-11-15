@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/13/2026
+# Date: 11/15/2026
 # File: app/routes.py
-# Version: V1.4
+# Version: V1.5
 # Description: The pages of the site and the forms on them: the home page
 #              with the list of the current user's links and their Delete
 #              buttons (URL-15), the create short link form with its optional
@@ -51,7 +51,9 @@ def render_home(status=200, **extra):
     Builds the home page. Every route that shows the page goes through
     here, so the header's user picker and the list of links always get the
     same values. The list only ever holds the current user's own links,
-    because list_urls_for_user() filters by their id.
+    because list_urls_for_user() filters by their id. The short links
+    always start with the SITE_URL setting (http://url.short.com), no
+    matter what address the page was opened with, localhost included.
     Arg1 = status, the HTTP status to answer with (200, or 400 after a bad form)
     Arg2 = extra, any more values for the template (user_error, typed_username,
            link_error, typed_long_url, typed_alias)
@@ -62,7 +64,7 @@ def render_home(status=200, **extra):
         "home.html",
         user=user,  # None = "Pick Or Add A User" Message
         links=list_urls_for_user(user["id"]) if user else [],  # Newest First, Nothing Without A User
-        base_url=request.host_url,  # "http://url.short.com/" Or "http://127.0.0.1:5000/", Whichever Was Typed
+        base_url=app.config["SITE_URL"] + "/",  # Always "http://url.short.com/", Never localhost (app/config.py)
         choices=switch_choices(),  # Every User, For The Switch Dropdown
         **extra,
     )

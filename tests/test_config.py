@@ -25,7 +25,7 @@ from app.config import load_config
 # ----------------------------------------------------------------------------
 # Constants
 # ----------------------------------------------------------------------------
-CONFIG_KEYS = ("MYSQL_HOST", "MYSQL_PORT", "MYSQL_USER", "MYSQL_PASSWORD", "MYSQL_DB", "SECRET_KEY")
+CONFIG_KEYS = ("MYSQL_HOST", "MYSQL_PORT", "MYSQL_USER", "MYSQL_PASSWORD", "MYSQL_DB", "SECRET_KEY", "SITE_URL")
 
 # ----------------------------------------------------------------------------
 # Classes

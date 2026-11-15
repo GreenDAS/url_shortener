@@ -25,7 +25,9 @@
                links    = list of the current user's link rows (code,
                           long_url, created_at), newest first
                base_url = the site's address with a "/" on the end, put in
-                          front of each code to make the short link
+                          front of each code to make the short link. It
+                          is always the SITE_URL setting,
+                          http://url.short.com/, never localhost
                link_error = message to show above the create form, or None
                typed_long_url, typed_alias = what was typed in the form, so
                           a bad entry is not lost

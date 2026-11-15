@@ -1,10 +1,11 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/11/2026
+# Date: 11/15/2026
 # File: app/config.py
-# Version: V1.3
-# Description: Reads the app settings (MySQL connection, secret key) from the
-#              .env file and environment variables (spec DB-2, DB-5).
+# Version: V1.4
+# Description: Reads the app settings (MySQL connection, secret key, the
+#              site's address) from the .env file and environment variables
+#              (spec DB-2, DB-5).
 #
 #              Where a setting comes from, first match wins:
 #                1. A real environment variable (e.g. set by Docker or the
@@ -16,6 +17,8 @@
 #              the result into app.config. app/db.py then reads the MYSQL_*
 #              keys from app.config when it opens a connection. This file is
 #              the ONLY place with MySQL defaults (URL-26), db.py has none.
+#              app/routes.py reads SITE_URL to write the short links on the
+#              home page, so they always say url.short.com.
 #              Spec sheet: docs/specs/app-startup.md
 # ----------------------------------------------------------------------------
 
@@ -32,6 +35,7 @@ from dotenv import load_dotenv  # python-dotenv: Copies .env Lines Into os.envir
 DEFAULT_MYSQL_HOST = "host.docker.internal"  # Host Machine As Seen From The Container
 DEFAULT_MYSQL_PORT = 3306  # Port The Host's MySQL Install Listens On (DB-1)
 DEFAULT_MYSQL_DB = "url_shortener"  # Database (Schema) Name
+DEFAULT_SITE_URL = "http://url.short.com"  # The Site's Public Address, Short Links Always Start With It
 
 # ----------------------------------------------------------------------------
 # Functions
@@ -46,11 +50,12 @@ def load_config(env_file=None):
          set so real environment variables win.
       2. Each setting is then read from os.environ with a fallback default.
          MYSQL_PORT is turned into an int since everything in os.environ is
-         a string.
+         a string. SITE_URL loses any "/" on its end, so the page can
+         always add exactly one.
 
     Arg1 = env_file, path to a .env file (None = search for ".env" from the working folder)
     Returns: dict with MYSQL_HOST, MYSQL_PORT (int), MYSQL_USER, MYSQL_PASSWORD,
-             MYSQL_DB and SECRET_KEY, ready for app.config.update()
+             MYSQL_DB, SECRET_KEY and SITE_URL, ready for app.config.update()
     Raises: ValueError if MYSQL_PORT is set to something that is not a number
     """
     load_dotenv(env_file, override=False)  # Real Environment Variables Win Over .env
@@ -62,4 +67,5 @@ def load_config(env_file=None):
         "MYSQL_PASSWORD": os.environ.get("MYSQL_PASSWORD", ""),
         "MYSQL_DB": os.environ.get("MYSQL_DB", DEFAULT_MYSQL_DB),  # Database (Schema) Name
         "SECRET_KEY": os.environ.get("SECRET_KEY", "dev-only-not-secret"),  # Signs The Session Cookie
+        "SITE_URL": os.environ.get("SITE_URL", DEFAULT_SITE_URL).rstrip("/"),  # "http://url.short.com", No "/" On The End
     }

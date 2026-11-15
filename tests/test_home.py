@@ -84,8 +84,8 @@ class TestLinksTable(HomeTestCase):
         """Every link shows the site address + code as a clickable link, and its long URL."""
         self.use(1)
         page = self.client.get("/").get_data(as_text=True)
-        self.assertIn('<a href="http://localhost/abc123">http://localhost/abc123</a>', page)
-        self.assertIn('<a href="http://localhost/repo">http://localhost/repo</a>', page)
+        self.assertIn('<a href="http://url.short.com/abc123">http://url.short.com/abc123</a>', page)
+        self.assertIn('<a href="http://url.short.com/repo">http://url.short.com/repo</a>', page)
         self.assertIn("https://github.com/GreenDAS/url_shortener", page)
 
     def test_short_link_uses_the_address_the_browser_used(self):
