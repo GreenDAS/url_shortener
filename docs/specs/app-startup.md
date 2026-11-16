@@ -116,8 +116,9 @@ flowchart TD
 
 ## 8. Tests
 
-* `tests/test_config.py`: defaults, reading a temporary `.env` file, and the
-  real environment winning over `.env`.
+* `tests/test_config.py`: defaults, reading a temporary `.env` file, the
+  real environment winning over `.env`, and `SITE_URL` (default, set in
+  `.env`, a `/` on the end dropped).
 * `tests/test_gunicorn_config.py`: default and custom `APP_PORT`, worker
   formula and override, `wsgi_app` and the log settings.
 * Run: `python -m unittest tests.test_config tests.test_gunicorn_config -v`
