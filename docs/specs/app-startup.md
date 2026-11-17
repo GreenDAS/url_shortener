@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | **Author** | Daniel S. |
-| **Date** | 11/11/2026 |
-| **Version** | V1.1 |
+| **Date** | 11/15/2026 |
+| **Version** | V1.2 |
 | **Jira** | URL-4 (Infra epic), Gunicorn work merged in PR #1 |
 | **Course spec** | PRE-4, WSGI-1 to WSGI-5, DOC-1 to DOC-7, DB-2, DB-5 |
 | **Files** | `url_shortener.py`, `app/__init__.py`, `app/config.py`, `gunicorn_config.py`, `Dockerfile`, `compose.yaml`, `compose.dev.yaml`, `.env.example` |
@@ -27,6 +27,7 @@ All four end up with the same `app` object from `app/__init__.py`.
 | `MYSQL_PASSWORD` | env var or `.env` | same | `""` |
 | `MYSQL_DB` | env var or `.env` | same | `url_shortener` |
 | `SECRET_KEY` | env var or `.env` | Flask session signing | `dev-only-not-secret` |
+| `SITE_URL` | env var or `.env` | `app/config.py` -> `app/routes.py`, the front of every short link on the home page | `http://url.short.com` (a `/` on the end is dropped) |
 | `APP_PORT` | env var | `gunicorn_config.py` | `5000` |
 | `GUNICORN_WORKERS` | env var | `gunicorn_config.py` | `(2 x CPU cores) + 1` |
 
@@ -63,7 +64,7 @@ because `load_dotenv(override=False)` never replaces a name that is already set.
 
 | Name | File | Arg(s) | Returns / Effect |
 |---|---|---|---|
-| `load_config(env_file=None)` | `app/config.py` | path to a `.env`, or None to search | dict of the six settings. Raises `ValueError` if `MYSQL_PORT` isn't a number |
+| `load_config(env_file=None)` | `app/config.py` | path to a `.env`, or None to search | dict of the seven settings. Raises `ValueError` if `MYSQL_PORT` isn't a number |
 | `bind` | `gunicorn_config.py` | | `"0.0.0.0:<port>"` (WSGI-3, WSGI-4) |
 | `workers` | `gunicorn_config.py` | | int, `(2 x cores) + 1` unless `GUNICORN_WORKERS` is set |
 | `wsgi_app` | `gunicorn_config.py` | | `"url_shortener:app"` (WSGI-2) |
@@ -115,8 +116,9 @@ flowchart TD
 
 ## 8. Tests
 
-* `tests/test_config.py`: defaults, reading a temporary `.env` file, and the
-  real environment winning over `.env`.
+* `tests/test_config.py`: defaults, reading a temporary `.env` file, the
+  real environment winning over `.env`, and `SITE_URL` (default, set in
+  `.env`, a `/` on the end dropped).
 * `tests/test_gunicorn_config.py`: default and custom `APP_PORT`, worker
   formula and override, `wsgi_app` and the log settings.
 * Run: `python -m unittest tests.test_config tests.test_gunicorn_config -v`

@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/13/2026
+# Date: 11/15/2026
 # File: tests/test_home.py
-# Version: V1.0
+# Version: V1.1
 # Description: Unit tests for the home page (URL-15): the table of the
 #              current user's links in app/templates/home.html and the
 #              Delete button's route, POST /links/<code>/delete, in
@@ -84,16 +84,32 @@ class TestLinksTable(HomeTestCase):
         """Every link shows the site address + code as a clickable link, and its long URL."""
         self.use(1)
         page = self.client.get("/").get_data(as_text=True)
-        self.assertIn('<a href="http://localhost/abc123">http://localhost/abc123</a>', page)
-        self.assertIn('<a href="http://localhost/repo">http://localhost/repo</a>', page)
+        self.assertIn('<a href="http://url.short.com/abc123">http://url.short.com/abc123</a>', page)
+        self.assertIn('<a href="http://url.short.com/repo">http://url.short.com/repo</a>', page)
         self.assertIn("https://github.com/GreenDAS/url_shortener", page)
 
-    def test_short_link_uses_the_address_the_browser_used(self):
+    def test_short_link_says_url_short_com_through_apache(self):
         """Opened as url.short.com, the short links say url.short.com."""
         with self.client.session_transaction(base_url="http://url.short.com") as sess:
             sess[accounts.ACTIVE_KEY] = 1  # The Cookie Belongs To The Domain It Was Set On
         page = self.client.get("/", base_url="http://url.short.com").get_data(as_text=True)
         self.assertIn("http://url.short.com/abc123", page)
+
+    def test_short_link_never_says_localhost(self):
+        """Opened as 127.0.0.1:5000 (flask run), the short links still say url.short.com."""
+        with self.client.session_transaction(base_url="http://127.0.0.1:5000") as sess:
+            sess[accounts.ACTIVE_KEY] = 1  # The Cookie Belongs To The Domain It Was Set On
+        page = self.client.get("/", base_url="http://127.0.0.1:5000").get_data(as_text=True)
+        self.assertIn('<a href="http://url.short.com/abc123">http://url.short.com/abc123</a>', page)
+        self.assertNotIn("http://127.0.0.1:5000/abc123", page)
+        self.assertNotIn("http://localhost/abc123", page)
+
+    def test_short_link_follows_the_site_url_setting(self):
+        """Changing SITE_URL in the config changes the front of every short link."""
+        self.use(1)
+        with mock.patch.dict(app.config, {"SITE_URL": "http://go.example.com"}):
+            page = self.client.get("/").get_data(as_text=True)
+        self.assertIn('<a href="http://go.example.com/repo">http://go.example.com/repo</a>', page)
 
     def test_rows_keep_newest_first_order(self):
         """The rows are in the order list_urls_for_user() returned (newest first)."""

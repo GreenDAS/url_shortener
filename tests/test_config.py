@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/11/2026
+# Date: 11/15/2026
 # File: tests/test_config.py
-# Version: V1.2
+# Version: V1.3
 # Description: Unit tests for app/config.py (.env loading, spec DB-2).
 #
 #              Uses mock.patch.dict(os.environ) and temporary .env files so each
@@ -25,7 +25,7 @@ from app.config import load_config
 # ----------------------------------------------------------------------------
 # Constants
 # ----------------------------------------------------------------------------
-CONFIG_KEYS = ("MYSQL_HOST", "MYSQL_PORT", "MYSQL_USER", "MYSQL_PASSWORD", "MYSQL_DB", "SECRET_KEY")
+CONFIG_KEYS = ("MYSQL_HOST", "MYSQL_PORT", "MYSQL_USER", "MYSQL_PASSWORD", "MYSQL_DB", "SECRET_KEY", "SITE_URL")
 
 # ----------------------------------------------------------------------------
 # Classes
@@ -61,6 +61,21 @@ class TestLoadConfig(unittest.TestCase):
         config = load_config(self.write_env(""))
         self.assertEqual(config["MYSQL_HOST"], "host.docker.internal")
         self.assertEqual(config["MYSQL_PORT"], 3306)
+
+    def test_site_url_defaults_to_url_short_com(self):
+        """With no .env, the short links start with http://url.short.com."""
+        config = load_config(self.write_env(""))
+        self.assertEqual(config["SITE_URL"], "http://url.short.com")
+
+    def test_site_url_can_be_set_in_env_file(self):
+        """SITE_URL in the .env file replaces the default."""
+        config = load_config(self.write_env("SITE_URL=http://go.example.com\n"))
+        self.assertEqual(config["SITE_URL"], "http://go.example.com")
+
+    def test_site_url_drops_a_slash_on_the_end(self):
+        """A "/" typed on the end is removed, so the page never writes "//code"."""
+        config = load_config(self.write_env("SITE_URL=http://url.short.com/\n"))
+        self.assertEqual(config["SITE_URL"], "http://url.short.com")
 
     def test_reads_values_from_env_file(self):
         """Values in the .env file end up in the config."""
