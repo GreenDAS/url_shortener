@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/11/2026
+# Date: 11/13/2026
 # File: app/accounts.py
-# Version: V1.2
+# Version: V1.3
 # Description: User swapping (URL-12). The browser's session remembers which
 #              user is the current one, and a "Switch user" control can change
 #              it to any user that exists. There are no passwords and no
@@ -12,7 +12,8 @@
 #                session["user_id"] = 7    the current user's users.id
 #              How the pieces fit:
 #                user picker / menu  -> switch_choices() builds the list
-#                picking a user      -> POST /switch/<id> -> switch_to(id)
+#                picking a user      -> POST /switch (the dropdown's form) or
+#                                       POST /switch/<id> -> switch_to(id)
 #                any page            -> current_user_id() says who is current
 #              Spec sheet: docs/specs/user-swap.md
 # ----------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 # ----------------------------------------------------------------------------
 # Imports
 # ----------------------------------------------------------------------------
-from flask import abort, redirect, session  # session = The Signed Cookie As A Dict
+from flask import abort, redirect, request, session  # session = The Signed Cookie As A Dict
 
 from app import app  # The Flask Object, For @app.route
 from app.users import get_user_by_id, list_users  # users Table Helpers (URL-9)
@@ -78,3 +79,19 @@ def switch_user(user_id):
     if not switch_to(user_id):
         abort(404)  # Not Found: No User With That id
     return redirect("/")  # Fixed Target, Not The Referer, So It Can't Bounce To Another Site
+
+
+@app.route("/switch", methods=["POST"])  # The Picker's Dropdown Posts Here (URL-13)
+def switch_user_form():
+    """
+    Same as switch_user(), but the id comes from the form instead of the
+    address. A dropdown can't change where its form posts to without
+    JavaScript, so the picker sends the picked id as the field "user_id".
+    Form field: user_id, the users.id picked in the dropdown
+    Returns: redirect to the main page. If the id is missing, not a number
+             or no user has it: 404
+    """
+    user_id = request.form.get("user_id", type=int)  # None If Missing Or Not A Number
+    if user_id is None or not switch_to(user_id):
+        abort(404)  # Not Found: No User With That id
+    return redirect("/")

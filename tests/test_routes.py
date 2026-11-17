@@ -1,12 +1,13 @@
 # ----------------------------------------------------------------------------
 # Author: Daniel S.
-# Date: 11/11/2026
+# Date: 11/13/2026
 # File: tests/test_routes.py
-# Version: V1.2
+# Version: V1.3
 # Description: Unit tests for app/routes.py using Flask's test client.
 #
-#              Uses Flask's test client against the placeholder home page and
-#              checks unknown pages 404 (with the short link lookup mocked).
+#              Uses Flask's test client against the home page and checks
+#              unknown pages 404 (with the short link lookup mocked). The
+#              users table is mocked (list_users) so no MySQL is needed.
 #              Run just this file: python -m unittest tests.test_routes -v
 #              Spec sheet: docs/specs/home-page.md
 # ----------------------------------------------------------------------------
@@ -26,15 +27,18 @@ class TestRoutes(unittest.TestCase):
     """Checks the app loads through url_shortener:app and serves its pages."""
 
     def setUp(self):
-        """Makes a test client so no server is needed."""
+        """Makes a test client and fakes an empty users table."""
         app.config["TESTING"] = True
         self.client = app.test_client()
+        patcher = mock.patch("app.accounts.list_users", return_value=[])  # The Picker's Dropdown Reads This
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def test_home_page_loads(self):
-        """GET / returns 200 and the placeholder text."""
+        """GET / returns 200 and the page title."""
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Hello, World!", response.data)
+        self.assertIn(b"URL Shortener", response.data)
 
     def test_index_page_loads(self):
         """GET /index serves the same page."""

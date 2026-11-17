@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | **Author** | Daniel S. |
-| **Date** | 11/11/2026 |
-| **Version** | V1.1 |
+| **Date** | 11/13/2026 |
+| **Version** | V1.2 |
 | **Jira** | URL-12 (user swapping), URL-24 (simplified, no sign in list). The picker page is URL-13 |
 | **Files** | `app/accounts.py` (uses `app/users.py`) |
 | **Tests** | `tests/test_accounts.py` |
@@ -20,7 +20,8 @@ the ability to swap between users, not authentication (URL-23, URL-24).
 
 | Input | Where | Notes |
 |---|---|---|
-| `user_id` | `POST /switch/<int:user_id>` from the "Switch user" control | must be an int, else 404 |
+| `user_id` | `POST /switch/<int:user_id>`, in the address | must be an int, else 404 |
+| `user_id` | `POST /switch`, as a form field from the picker's dropdown (URL-13) | must be a number, else 404 |
 | Session cookie | the browser | signed with `SECRET_KEY` so it can't be edited |
 
 ## 3. Outputs and State
@@ -34,6 +35,7 @@ The session (Flask's signed cookie) holds:
 | Function / Route | Output |
 |---|---|
 | `POST /switch/<id>` | `302` to `/` if a user has that id, else `404 Not Found` |
+| `POST /switch` (form field `user_id`) | the same: `302` to `/`, else `404` |
 | `GET /switch/<id>` | `405 Method Not Allowed` |
 | `switch_choices()` | list of `{id, username, active}` for the control |
 
@@ -60,6 +62,7 @@ The session (Flask's signed cookie) holds:
 | `switch_to(user_id)` | id to swap to | `True` if swapped, `False` if no such user |
 | `switch_choices()` | | list of `{id, username, active}` |
 | `switch_user(user_id)` | route `POST /switch/<int:user_id>` | redirect to `/`, or 404 |
+| `switch_user_form()` | route `POST /switch`, id from the form | redirect to `/`, or 404. See [user-picker.md](user-picker.md) |
 
 ## 6. Flow Chart: `POST /switch/<id>`
 

@@ -18,7 +18,8 @@ and one or more Mermaid flow charts. Mermaid renders on GitHub and in VS Code
 | URLs (short codes, links) | URL-10 | [urls.md](specs/urls.md) | `app/urls.py` |
 | Short link redirect | URL-11 | [redirect.md](specs/redirect.md) | `app/redirect.py` |
 | User swapping | URL-12 | [user-swap.md](specs/user-swap.md) | `app/accounts.py` |
-| Home page (placeholder) | URL-15 (later) | [home-page.md](specs/home-page.md) | `app/routes.py` |
+| User picker (switch or add a user) | URL-13 | [user-picker.md](specs/user-picker.md) | `app/templates/base.html`, `app/routes.py`, `app/accounts.py` |
+| Home page | URL-13, URL-15 | [home-page.md](specs/home-page.md) | `app/routes.py`, `app/templates/home.html` |
 
 ## How It All Fits Together
 
