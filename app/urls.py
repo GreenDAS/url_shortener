@@ -9,7 +9,7 @@
 #
 #              Nothing in here is a route, these are helpers the pages call.
 #              Who uses what:
-#                create_url()          -> create page / API (URL-14)
+#                create_url()          -> create form on the home page (URL-14)
 #                get_url_by_code()     -> app/redirect.py (URL-11)
 #                list_urls_for_user()  -> home page (URL-15)
 #                delete_url()          -> home page delete button (URL-15)

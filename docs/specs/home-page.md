@@ -4,8 +4,8 @@
 |---|---|
 | **Author** | Daniel S. |
 | **Date** | 11/13/2026 |
-| **Version** | V1.2 |
-| **Jira** | URL-15 (list of my links, Delete), URL-13 (pick or add a user message). The create form is URL-14 |
+| **Version** | V1.3 |
+| **Jira** | URL-15 (list of my links, Delete), URL-13 (pick or add a user message). The create form on this page is URL-14, see [create-form.md](create-form.md) |
 | **Files** | `app/routes.py`, `app/templates/home.html`, `app/templates/base.html` |
 | **Tests** | `tests/test_home.py`, `tests/test_routes.py`, `tests/test_picker.py` |
 
@@ -15,7 +15,9 @@ The one page of the site, at `/` and `/index`, rendered by Flask from a
 Jinja template. The header holds the user picker
 ([user-picker.md](user-picker.md)). Under it, the page lists the current
 user's short links in a plain table, newest first, each with a Delete
-button. With no current user the page asks me to pick or add one.
+button. Above the table is the create short link form
+([create-form.md](create-form.md)). With no current user the page asks me to
+pick or add one.
 
 Kept simple on purpose: plain HTML forms only, no JSON `/api` routes and no
 JavaScript. No stats, search box, copy button or confirm dialog.
@@ -119,10 +121,8 @@ flowchart TD
   up path returns 404. `tests/test_picker.py` covers the header.
 * Run: `python -m unittest tests.test_home tests.test_routes -v`
 
-## 8. Known Limits and Planned
+## 8. Known Limits
 
 * No confirm step before a delete, on purpose (kept simple).
 * Delete has no CSRF token. There is no login to protect, and the class
   asks for no authentication.
-* Planned: URL-14 and URL-22 add the create form with an optional custom
-  alias box.

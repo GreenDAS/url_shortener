@@ -2,11 +2,12 @@
 # Author: Daniel S.
 # Date: 11/13/2026
 # File: app/routes.py
-# Version: V1.3
+# Version: V1.4
 # Description: The pages of the site and the forms on them: the home page
 #              with the list of the current user's links and their Delete
-#              buttons (URL-15), and the "Add user" box of the user picker
-#              (URL-13).
+#              buttons (URL-15), the create short link form with its optional
+#              custom alias box (URL-14, URL-22), and the "Add user" box of
+#              the user picker (URL-13).
 #
 #              Every form here is a plain HTML form (no JavaScript). The
 #              pattern is always the same:
@@ -26,7 +27,7 @@ from flask import abort, redirect, render_template, request  # request = The Inc
 
 from app import app  # The Flask Object, For @app.route
 from app.accounts import current_user_id, switch_choices, switch_to  # Who Is Current + Swapping (URL-12)
-from app.urls import delete_url, list_urls_for_user  # urls Table Helpers (URL-10)
+from app.urls import UrlError, create_url, delete_url, list_urls_for_user  # urls Table Helpers (URL-10)
 from app.users import UserError, create_user, get_user_by_id  # users Table Helpers (URL-9)
 
 # ----------------------------------------------------------------------------
@@ -52,7 +53,8 @@ def render_home(status=200, **extra):
     same values. The list only ever holds the current user's own links,
     because list_urls_for_user() filters by their id.
     Arg1 = status, the HTTP status to answer with (200, or 400 after a bad form)
-    Arg2 = extra, any more values for the template (user_error, typed_username)
+    Arg2 = extra, any more values for the template (user_error, typed_username,
+           link_error, typed_long_url, typed_alias)
     Returns: (page HTML, status) for Flask to send
     """
     user = current_user()
@@ -94,6 +96,31 @@ def add_user():
     except UserError as error:
         return render_home(400, user_error=str(error), typed_username=username)  # 400 = Bad Request
     switch_to(user_id)  # The New User Becomes The Current One
+    return redirect("/")
+
+
+@app.route("/links", methods=["POST"])  # POST Only, The Create Form Posts Here
+def create_link():
+    """
+    The create short link form (URL-14). Shortens the pasted URL for the
+    current user. The alias box is optional (URL-22): left empty, a random
+    6 character code is made.
+    Form field: long_url, the full URL to shorten
+    Form field: alias, optional custom short code
+    Returns: redirect to the home page, where the new link is the top row.
+             If nobody is picked: redirect to the home page, nothing is made.
+             If the URL or alias is bad, or the alias is taken: the home page
+             again with the error above the form and status 400
+    """
+    user = current_user()
+    if user is None:
+        return redirect("/")  # Nobody Picked, The Page Will Ask To Pick A User
+    long_url = request.form.get("long_url", "").strip()  # "" If The Field Is Missing, Spaces Trimmed
+    alias = request.form.get("alias", "").strip()
+    try:
+        create_url(user["id"], long_url, alias or None)  # "" Becomes None = Make A Random Code
+    except UrlError as error:  # AliasTakenError Is A UrlError Too
+        return render_home(400, link_error=str(error), typed_long_url=long_url, typed_alias=alias)
     return redirect("/")
 
 

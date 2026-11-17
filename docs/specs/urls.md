@@ -5,7 +5,7 @@
 | **Author** | Daniel S. |
 | **Date** | 11/11/2026 |
 | **Version** | V1.2 |
-| **Jira** | URL-10 (URL database). Used by URL-11 (redirect), URL-14 (create page), URL-15 (home page) |
+| **Jira** | URL-10 (URL database). Used by URL-11 (redirect), URL-14 (create form), URL-15 (home page), URL-22 (custom alias box) |
 | **Files** | `app/urls.py`, `urls` table in `app/schema.sql` |
 | **Tests** | `tests/test_urls.py` |
 
