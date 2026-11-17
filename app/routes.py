@@ -2,9 +2,10 @@
 # Author: Daniel S.
 # Date: 11/13/2026
 # File: app/routes.py
-# Version: V1.2
-# Description: The pages of the site and the forms on them. Right now that is
-#              the home page and the "Add user" box of the user picker
+# Version: V1.3
+# Description: The pages of the site and the forms on them: the home page
+#              with the list of the current user's links and their Delete
+#              buttons (URL-15), and the "Add user" box of the user picker
 #              (URL-13).
 #
 #              Every form here is a plain HTML form (no JavaScript). The
@@ -21,10 +22,11 @@
 # ----------------------------------------------------------------------------
 # Imports
 # ----------------------------------------------------------------------------
-from flask import redirect, render_template, request  # request = The Incoming Form Data
+from flask import abort, redirect, render_template, request  # request = The Incoming Form Data
 
 from app import app  # The Flask Object, For @app.route
 from app.accounts import current_user_id, switch_choices, switch_to  # Who Is Current + Swapping (URL-12)
+from app.urls import delete_url, list_urls_for_user  # urls Table Helpers (URL-10)
 from app.users import UserError, create_user, get_user_by_id  # users Table Helpers (URL-9)
 
 # ----------------------------------------------------------------------------
@@ -46,14 +48,19 @@ def current_user():
 def render_home(status=200, **extra):
     """
     Builds the home page. Every route that shows the page goes through
-    here, so the header's user picker always gets the same values.
+    here, so the header's user picker and the list of links always get the
+    same values. The list only ever holds the current user's own links,
+    because list_urls_for_user() filters by their id.
     Arg1 = status, the HTTP status to answer with (200, or 400 after a bad form)
     Arg2 = extra, any more values for the template (user_error, typed_username)
     Returns: (page HTML, status) for Flask to send
     """
+    user = current_user()
     page = render_template(
         "home.html",
-        user=current_user(),  # None = "Pick Or Add A User" Message
+        user=user,  # None = "Pick Or Add A User" Message
+        links=list_urls_for_user(user["id"]) if user else [],  # Newest First, Nothing Without A User
+        base_url=request.host_url,  # "http://url.short.com/" Or "http://127.0.0.1:5000/", Whichever Was Typed
         choices=switch_choices(),  # Every User, For The Switch Dropdown
         **extra,
     )
@@ -87,4 +94,22 @@ def add_user():
     except UserError as error:
         return render_home(400, user_error=str(error), typed_username=username)  # 400 = Bad Request
     switch_to(user_id)  # The New User Becomes The Current One
+    return redirect("/")
+
+
+@app.route("/links/<code>/delete", methods=["POST"])  # POST Only, Each Row's Delete Button Posts Here
+def delete_link(code):
+    """
+    The Delete button next to a link (URL-15). Only removes the link if the
+    current user owns it, delete_url() checks that inside its SQL.
+    Arg1 = code, the short code of the link to remove
+    Returns: redirect to the home page. If nobody is picked: redirect to the
+             home page without deleting. If the link doesn't exist or belongs
+             to another user: 404
+    """
+    user = current_user()
+    if user is None:
+        return redirect("/")  # Nobody Picked, The Page Will Ask To Pick A User
+    if not delete_url(user["id"], code):
+        abort(404)  # Not Found: No Such Link, Or It Is Someone Else's
     return redirect("/")

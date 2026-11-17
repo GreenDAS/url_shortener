@@ -2,7 +2,7 @@
 # Author: Daniel S.
 # Date: 11/13/2026
 # File: tests/test_picker.py
-# Version: V1.0
+# Version: V1.1
 # Description: Unit tests for the user picker (URL-13): the header in
 #              app/templates/base.html, POST /users in app/routes.py and
 #              POST /switch in app/accounts.py.
@@ -46,6 +46,7 @@ class PickerTestCase(unittest.TestCase):
         self.patch("app.accounts.get_user_by_id", side_effect=BY_ID.get)  # switch_to() Uses This One
         self.patch("app.routes.get_user_by_id", side_effect=BY_ID.get)  # current_user() Uses This One
         self.create_user = self.patch("app.routes.create_user", return_value=3)
+        self.patch("app.routes.list_urls_for_user", return_value=[])  # The Page Lists Links Too (URL-15)
 
     def patch(self, target, **kwargs):
         """Starts a mock.patch and stops it when the test ends."""
