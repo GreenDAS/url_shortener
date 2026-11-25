@@ -37,7 +37,7 @@ out automatically.
 
 | Rule | Matches | Why |
 |---|---|---|
-| Folder name | `.venv`, `venv`, `env` | SUB-2 says no virtual environment |
+| Folder name | `.venv`, `.venv-wsl`, `venv`, `env` | SUB-2 says no virtual environment (`.venv-wsl` is the one the Gunicorn demo makes in WSL) |
 | Folder name | `.git` | Git history, the grader uses the GitHub link (SUB-1) |
 | Folder name | `__pycache__`, `.pytest_cache`, `.mypy_cache` | Generated caches |
 | File name | `.env` | Real passwords. `.env.example` IS kept as the template |

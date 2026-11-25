@@ -37,7 +37,7 @@ DEFAULT_ZIP_NAME = "url_shortener_submission.zip"  # File Name When --out Isn't 
 
 # Folders Skipped Anywhere They Appear (Matched On The Folder Name)
 EXCLUDED_DIRS = {
-    ".venv", "venv", "env",  # Virtual Environments, The Spec Says Leave These Out (SUB-2)
+    ".venv", ".venv-wsl", "venv", "env",  # Virtual Environments (.venv-wsl Is The Gunicorn Demo One), The Spec Says Leave These Out (SUB-2)
     ".git",  # Git History, The Grader Uses The GitHub Link (SUB-1)
     "__pycache__",  # Python's Compiled Cache, Rebuilt Automatically
     ".pytest_cache", ".mypy_cache",  # Tool Caches, Not Part Of The Project

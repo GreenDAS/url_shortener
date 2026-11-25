@@ -30,7 +30,7 @@ import make_submission
 # ----------------------------------------------------------------------------
 KEPT = ["url_shortener.py", "requirements.txt", ".env.example", "app/__init__.py",
         "app/templates/home.html", "docs/specs/redirect.md", "tests/test_urls.py"]
-DROPPED = [".env", ".venv/Scripts/python.exe", "venv/lib/site.py", ".git/HEAD",
+DROPPED = [".env", ".venv/Scripts/python.exe", ".venv-wsl/bin/python", "venv/lib/site.py", ".git/HEAD",
            "app/__pycache__/urls.cpython-315.pyc", "stray.pyc", "old_submission.zip"]
 
 # ----------------------------------------------------------------------------
