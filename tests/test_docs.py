@@ -2,10 +2,11 @@
 # Author: Daniel S.
 # Date: 11/11/2026
 # File: tests/test_docs.py
-# Version: V1.0
+# Version: V1.1
 # Description: Unit tests that keep the documentation rule from slipping.
 #              Checks every Python file in app/ (plus url_shortener.py and
-#              gunicorn_config.py) has the CPE-490 style header block and a
+#              gunicorn_config.py and make_submission.py) has the CPE-490
+#              style header block and a
 #              link to its spec sheet, every function and class has a
 #              docstring, and every spec sheet exists and has at least one
 #              Mermaid flow chart. Reads files only, no app or MySQL needed.
@@ -28,7 +29,8 @@ REPO = Path(__file__).resolve().parent.parent  # tests/ -> Repo Folder
 SPECS = REPO / "docs" / "specs"
 
 # Every App Code File That Must Be Documented
-CODE_FILES = sorted(REPO.glob("app/*.py")) + [REPO / "url_shortener.py", REPO / "gunicorn_config.py"]
+CODE_FILES = sorted(REPO.glob("app/*.py")) + [REPO / "url_shortener.py", REPO / "gunicorn_config.py",
+                                               REPO / "make_submission.py"]
 
 # Header Fields From The CPE-490 Style, In Order
 HEADER_FIELDS = ("# Author:", "# Date:", "# File:", "# Version:", "# Description:")
