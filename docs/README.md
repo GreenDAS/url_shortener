@@ -21,6 +21,7 @@ and one or more Mermaid flow charts. Mermaid renders on GitHub and in VS Code
 | User picker (switch or add a user) | URL-13 | [user-picker.md](specs/user-picker.md) | `app/templates/base.html`, `app/routes.py`, `app/accounts.py` |
 | Create short link form (with custom alias) | URL-14, URL-22 | [create-form.md](specs/create-form.md) | `app/routes.py`, `app/templates/home.html` |
 | Home page (list of links, Delete) | URL-15 | [home-page.md](specs/home-page.md) | `app/routes.py`, `app/templates/home.html` |
+| Submission zip for eLearning | URL-21 | [submission.md](specs/submission.md) | `make_submission.py` |
 
 ## How It All Fits Together
 
@@ -56,6 +57,11 @@ flowchart TD
     URLS --> DBM
     DBM --> SQL[app/schema.sql]
 ```
+
+## Final Demo
+
+The 30 minute live demo script, tier by tier, is in
+[demo-checklist.md](demo-checklist.md).
 
 ## Running the Unit Tests
 
